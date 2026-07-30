@@ -1,0 +1,11 @@
+flowchart LR
+    A[CSV or XLSX Dataset] --> B[Schema Mapping and Validation]
+    B --> C[Transparent Cleaning Ledger]
+    C --> D[PII Detection and Masking]
+    D --> E[Local AI Intent Router]
+    E --> F[Structured QueryPlan]
+    F --> G{Allowlist Validator}
+    G -- Refuse --> H[Safe Refusal and Suggested Questions]
+    G -- Pass --> I[Deterministic Pandas Calculation]
+    I --> J[Evidence, Confidence, and Explanation]
+    J --> K[Chart, Table, Masked Rows, Export, Audit Log]

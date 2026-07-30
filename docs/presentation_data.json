@@ -1,0 +1,80 @@
+{
+  "dataset": {
+    "raw_rows": 654,
+    "cleaned_rows": 646,
+    "quality_score": 94,
+    "salary_missing_pct": 16.4,
+    "duplicate_ids_removed": 8,
+    "invalid_salary_rows": 3,
+    "fingerprint": "d1d0cd52e1bda4c6"
+  },
+  "remote_skills": {
+    "question": "What are the ten most requested skills for remote jobs?",
+    "headline": "Project Management is the strongest signal in 122 postings",
+    "summary": "Exploded unique skills from 223 matching postings, counted each skill at most once per posting, and returned the top 10.",
+    "rows_used": 223,
+    "confidence": "High confidence",
+    "confidence_score": 89,
+    "proof_id": "CP-88B4ACE97069E1CF",
+    "top_rows": [
+      {
+        "Skill": "Project Management",
+        "Postings": 122,
+        "Share of matched postings": 0.547085201793722
+      },
+      {
+        "Skill": "Azure",
+        "Postings": 121,
+        "Share of matched postings": 0.5426008968609866
+      },
+      {
+        "Skill": "Git",
+        "Postings": 119,
+        "Share of matched postings": 0.5336322869955157
+      },
+      {
+        "Skill": "Communication",
+        "Postings": 107,
+        "Share of matched postings": 0.4798206278026906
+      },
+      {
+        "Skill": "AWS",
+        "Postings": 102,
+        "Share of matched postings": 0.45739910313901344
+      }
+    ]
+  },
+  "internships": {
+    "question": "Which companies have the most internship opportunities?",
+    "headline": "Great Lakes Data Cooperative leads with 12 postings",
+    "rows_used": 114,
+    "confidence": "High confidence",
+    "confidence_score": 84,
+    "proof_id": "CP-F1A4DCCA9F027DBE",
+    "top_rows": [
+      {
+        "Company": "Great Lakes Data Cooperative",
+        "Postings": 12
+      },
+      {
+        "Company": "Blue Ridge Analytics",
+        "Postings": 11
+      },
+      {
+        "Company": "Harborlight HealthTech",
+        "Postings": 10
+      }
+    ]
+  },
+  "refusal": {
+    "question": "Which company has the happiest employees?",
+    "headline": "The dataset cannot support that conclusion",
+    "summary": "The dataset has no employee-satisfaction field.",
+    "proof_id": "CP-7AEBDAFC270C6B2F"
+  },
+  "qa": {
+    "pytest_count": 62,
+    "demo_checks_passed": 12,
+    "demo_checks_total": 12
+  }
+}

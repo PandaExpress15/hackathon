@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "careerproof-ai"
+version = "1.0.0"
+description = "Trustworthy, code-verified job-market analysis for the Secure AI Hackathon Track 2"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Hackathon Team" }]
+dependencies = [
+  "gradio>=6.5,<7",
+  "pandas>=2.2,<3",
+  "numpy>=2.0,<3",
+  "plotly>=6,<7",
+  "pydantic>=2.8,<3",
+  "scikit-learn>=1.5,<2",
+  "Jinja2>=3.1,<4",
+  "python-dotenv>=1.0,<2",
+  "openpyxl>=3.1,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<10",
+  "ruff>=0.6,<1",
+]
+
+[project.scripts]
+careerproof = "careerproof.ui:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["dist", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
