@@ -1,17 +1,19 @@
-# Pre-existing Work Disclosure
+# Pre-Existing Work Disclosure
 
-## Project-specific work
+CareerProof AI was an existing hackathon concept and interface direction before this official-data rebuild. The prior version used a synthetic demonstration dataset and established the product name, trust-boundary concept, Evidence Passport idea, and navy/green visual language.
 
-CareerProof AI project-specific source code, tests, synthetic dataset, interface design, diagrams, presentation material, and documentation were created for the Secure AI Hackathon beginning July 30, 2026.
+This edition adds substantial new functionality:
 
-## External references and dependencies
+- Replacement of synthetic records with official BLS, Census, and O*NET data
+- A multi-source data catalog and deterministic router
+- New official-data ingestion and normalization pipeline
+- Unified occupation profiles
+- State wage analysis
+- BLS projection analysis
+- O*NET skills, knowledge, task, tool, and education analysis
+- Census degree-field earnings analysis
+- BLS education-level wage analysis
+- New blue-accented responsive interface
+- New tests, source checksums, documentation, and packaging
 
-- Secure AI Hackathon Participant Guide supplied by the organizer
-- Python and the open-source packages listed in `THIRD_PARTY_NOTICES.md`
-- Standard software-development patterns such as schema validation, unit testing, structured logging, and deterministic data aggregation
-
-## Team additions
-
-Before submission, record any code, templates, datasets, assets, or project components created before the event below. If none, state `None`.
-
-**Additional pre-existing components:** None declared.
+Open-source libraries and official datasets are disclosed dependencies and do not represent original hackathon code.

@@ -1,5 +1,3 @@
-"""CareerProof AI package."""
+"""CareerProof AI official-data edition."""
 
-from .config import APP_NAME, APP_TAGLINE, VERSION
-
-__all__ = ["APP_NAME", "APP_TAGLINE", "VERSION"]
+__version__ = "2.0.0"

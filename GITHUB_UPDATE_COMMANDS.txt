@@ -1,0 +1,41 @@
+CareerProof AI official-data edition
+
+1. Extract the new package into a clean folder:
+
+   cd ~/Downloads
+   unzip careerproof-ai-official-data.zip -d careerproof-ai-official-data
+   cd careerproof-ai-official-data
+
+2. Create the environment and verify it:
+
+   python3 -m venv .venv
+   source .venv/bin/activate
+   python -m pip install --upgrade pip
+   python -m pip install -r requirements-dev.txt
+   pytest -q
+   python scripts/run_demo_checks.py
+   python scripts/smoke_test_app.py
+
+3. Run the website:
+
+   python app.py
+
+   Open http://127.0.0.1:7860
+
+4. Replace the files in the existing Git repository only after saving any work you need:
+
+   git status
+   git add -A
+   git commit -m "Replace synthetic data with official BLS Census and O*NET sources"
+   git push origin main
+
+If this folder is not already connected to the repository:
+
+   git init
+   git branch -M main
+   git remote add origin https://github.com/PandaExpress15/hackathon.git
+   git add -A
+   git commit -m "CareerProof AI official-data edition"
+   git push -u origin main
+
+Do not use a force push unless you deliberately intend to replace remote history and understand the consequences.

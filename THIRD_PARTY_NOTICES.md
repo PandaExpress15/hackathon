@@ -1,21 +1,23 @@
 # Third-Party Notices
 
-CareerProof AI uses the following open-source dependencies. Exact resolved versions are recorded by the installation environment.
+## Data
 
-| Dependency | Purpose | Common license |
-|---|---|---|
-| Gradio | Local web application interface | Apache-2.0 |
-| Pandas | Deterministic tabular calculations | BSD-3-Clause |
-| NumPy | Numerical operations | BSD-3-Clause |
-| Plotly | Interactive charts | MIT |
-| Pydantic | Structured data and query-plan validation | MIT |
-| scikit-learn | Local TF-IDF and logistic-regression intent model | BSD-3-Clause |
-| Jinja2 | HTML evidence report template | BSD-3-Clause |
-| python-dotenv | Optional local environment configuration | BSD-3-Clause |
-| openpyxl | Formatted XLSX demonstration data | MIT |
-| pytest | Automated testing | MIT |
-| Ruff | Optional linting | MIT |
+- U.S. Bureau of Labor Statistics OEWS and Employment Projections. U.S. federal government public data. https://www.bls.gov/
+- U.S. Census Bureau American Community Survey. U.S. federal government public data. https://www.census.gov/
+- O*NET Database 30.3. Creative Commons Attribution 4.0 International. https://www.onetcenter.org/database.html#license
 
-No proprietary API is required. No external dataset is bundled.
+O*NET® is a trademark of the U.S. Department of Labor, Employment and Training Administration.
 
-Users remain responsible for reviewing the dependency licenses applicable to the exact versions they install.
+## Python packages
+
+- FastAPI
+- Uvicorn
+- Jinja2
+- Pandas
+- openpyxl
+- Pydantic
+- scikit-learn
+- python-multipart
+- pytest and httpx for development and testing
+
+Each package remains subject to its own license and terms. No external AI service or proprietary runtime API is required.

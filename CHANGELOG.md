@@ -1,15 +1,15 @@
 # Changelog
 
-## 1.0.0 - 2026-07-30
+## 2.0.0 - Official-data edition
 
-- Added deterministic synthetic job-posting dataset and formatted workbook.
-- Added schema mapping, validation, transparent cleaning, and quality scoring.
-- Added local question-intent classifier and rule-assisted entity extraction.
-- Added allowlisted structured query plans and deterministic Pandas execution.
-- Added charts, tables, calculation details, confidence labels, and masked evidence.
-- Added Evidence Passport with privacy-safe proof bundles and replay verification, plus Refusal Coach, Career Signal Lab, and Scenario Compare.
-- Added privacy-preserving audit log and HTML/CSV/JSON exports.
-- Added automated tests, demo checks, verification, packaging, presentation, and submission documentation.
-- Added upload row and column limits, clearer empty-file errors, and correct report provenance for user uploads.
-- Added recursive privacy masking for nested proof, report, query-plan, and audit exports.
-- Added an application launch smoke test, checkpoint pack, judge demo cheat sheet, and extracted-package QA.
+- Removed synthetic labor-market records.
+- Added official May 2025 BLS OEWS national and state data.
+- Added BLS 2024–2034 occupational projections.
+- Added O*NET 30.3 occupation profiles.
+- Added 2024 Census ACS degree-field earnings.
+- Added BLS wage aggregates by typical entry education.
+- Added multi-source question routing and selectable datasets.
+- Added unified occupation explorer covering 830 detailed occupations.
+- Expanded media, communications, engineering, policy, legal, health, education, and technology coverage.
+- Added stronger blue accents while preserving navy, green, white, and gray theme.
+- Added source checksums, documentation, tests, verification, and packaging.

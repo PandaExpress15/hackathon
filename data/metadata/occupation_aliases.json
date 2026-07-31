@@ -1,0 +1,22 @@
+{
+  "attorney": "Lawyers",
+  "lawyer": "Lawyers",
+  "public relations": "Public Relations Specialists",
+  "pr specialist": "Public Relations Specialists",
+  "mass communications": "Public Relations Specialists",
+  "communications specialist": "Public Relations Specialists",
+  "journalist": "News Analysts, Reporters, and Journalists",
+  "reporter": "News Analysts, Reporters, and Journalists",
+  "broadcast technician": "Broadcast Technicians",
+  "nuclear engineer": "Nuclear Engineers",
+  "political scientist": "Political Scientists",
+  "political science": "Political Scientists",
+  "software engineer": "Software Developers",
+  "software developer": "Software Developers",
+  "registered nurse": "Registered Nurses",
+  "mechanical engineer": "Mechanical Engineers",
+  "electrical engineer": "Electrical Engineers",
+  "data scientist": "Data Scientists",
+  "cybersecurity analyst": "Information Security Analysts",
+  "teacher": "Secondary School Teachers, Except Special and Career/Technical Education"
+}

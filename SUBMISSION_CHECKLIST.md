@@ -7,28 +7,24 @@
 - [x] Project name: CareerProof AI
 - [x] Selected track: Track 2 - Trustworthy Data Analysis
 
-## Required links and files
+## Technical package
+
+- [x] Official source snapshots bundled
+- [x] No synthetic labor-market records
+- [x] Data catalog, source URLs, licenses, and checksums included
+- [x] BLS, Census, and O*NET routes work
+- [x] Mass communications, nuclear engineering, political science, law, and broad occupational coverage verified
+- [x] Visible evidence, confidence, source vintage, limitations, and safe refusal
+- [x] Automated tests and server smoke test
+- [x] README, architecture, question catalog, limitations, and demo script
+- [x] No API keys or credentials required
+
+## External submission steps
 
 - [ ] Public GitHub repository URL: `<PUBLIC_GITHUB_URL>`
+- [ ] Push the final commit history
+- [ ] Record a presentation video no longer than 10 minutes
 - [ ] YouTube presentation URL: `<YOUTUBE_URL>`
-- [x] Final ZIP filename: `careerproof-ai-submission.zip`
-- [x] Complete source code included
-- [x] README includes setup, installation, execution, and demo instructions
-- [x] Presentation document included
-- [x] Architecture and workflow diagram included
-- [x] Dataset and data-license details included
-- [x] API and third-party-service details included
-- [x] Pre-existing-work disclosure included
-- [x] No credentials or confidential data included
-- [x] Automated tests, demo checks, and application launch smoke test pass
-- [x] Final ZIP is extracted and retested by the packaging script
-- [x] ZIP manifest records the final Git commit and file hashes
-
-## Final manual checks
-
-- [ ] Push the full local Git history to the public repository.
-- [ ] Confirm the repository works without an access request.
-- [ ] Record a presentation video no longer than 10 minutes.
-- [ ] Confirm the YouTube link opens in a private browser window.
-- [ ] Confirm the ZIP matches the final repository commit.
-- [ ] Complete the official submission form before the hard deadline.
+- [ ] Confirm the final ZIP matches the repository
+- [ ] Upload `careerproof-ai-official-data.zip`
+- [ ] Complete the official submission form before the hard deadline

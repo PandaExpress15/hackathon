@@ -1,18 +1,19 @@
-#!/usr/bin/env python3
-"""Launch CareerProof AI from a source checkout or installed package."""
-
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent
-SRC_DIR = PROJECT_ROOT / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+ROOT = Path(__file__).resolve().parent
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
-from careerproof.ui import main  # noqa: E402
+import uvicorn
 
+from careerproof.webapp import create_app
+
+app = create_app()
 
 if __name__ == "__main__":
-    main()
+    uvicorn.run(app, host=os.getenv("CAREERPROOF_HOST", "127.0.0.1"), port=int(os.getenv("CAREERPROOF_PORT", "7860")))

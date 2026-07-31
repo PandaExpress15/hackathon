@@ -2,121 +2,116 @@
 
 **Ask the job market. See the proof.**
 
-CareerProof AI is a Track 2 trustworthy-data-analysis application for students, recent graduates, career counselors, and workforce-development teams. Users ask questions about job-posting data in normal language. A local AI model interprets the question, but deterministic Pandas code calculates every factual result and exposes the evidence behind it.
+CareerProof AI is a Track 2 trustworthy-data-analysis website that turns official United States career data into clear, reproducible answers. A lightweight local AI classifier interprets the question. Deterministic Pandas code performs every factual calculation and exposes the source, vintage, table, filters, rows used, limitations, and an Evidence ID.
 
-> **AI interprets the question. Code calculates the answer.**
+> **Official data interprets the market. Code proves the answer.**
 
-![CareerProof AI interface preview](docs/assets/screenshots/dashboard.png)
+The bundled edition contains **no synthetic labor-market records**. It uses verified snapshots from the U.S. Bureau of Labor Statistics, U.S. Census Bureau, and O*NET.
 
-*Interface preview generated from a real calculation against the bundled synthetic dataset.*
+## What changed in the official-data edition
 
-## Why this project exists
+- Replaced the synthetic job-posting dataset with real published data.
+- Added six selectable source routes.
+- Expanded coverage to 830 detailed occupations and more than 36,000 state-occupation records.
+- Added mass-communications careers, journalism, public relations, broadcast technology, nuclear engineering, political science, law, health, education, software, and hundreds more.
+- Added a searchable unified occupation profile combining pay, employment, outlook, education, skills, knowledge, tasks, tools, and state wage data.
+- Added a Census degree-field earnings workspace.
+- Added BLS education-level wage comparisons by nation, state, and metropolitan area.
+- Preserved the deep navy, emerald, white, and cool-gray visual identity while adding stronger blue information accents.
+- Preserved visible evidence, safe refusal, source disclosure, and deterministic calculations.
 
-Job seekers are surrounded by listings but often cannot answer basic questions such as:
+## Official datasets
 
-- Which skills appear most often?
-- Which locations have the most entry-level opportunities?
-- Which employers post the most internships?
-- How much salary data is missing?
-- Is an answer based on enough evidence to trust?
+| Dataset | Vintage | What CareerProof uses it for |
+| --- | --- | --- |
+| BLS Occupational Employment and Wage Statistics, national | May 2025 | National employment, mean wages, median wages, and wage percentiles by detailed occupation |
+| BLS Occupational Employment and Wage Statistics, state | May 2025 | State employment, wages, jobs per 1,000, and location quotients |
+| BLS Employment Projections | 2024–2034 | Employment growth, annual openings, typical education, experience, and training |
+| O*NET Database | Release 30.3 | Occupation descriptions, essential skills, knowledge, tasks, software, job zones, and education responses |
+| Census ACS Detailed Table B15013 | 2024 1-Year | National median earnings by broad field of first bachelor's degree |
+| BLS OEWS estimates by typical entry education | May 2025 | National, state, and metro wage and employment aggregates by typical entry-level education |
 
-A general chatbot can sound confident without calculating from the supplied data. CareerProof AI separates language understanding from calculation and refuses conclusions that the dataset cannot support.
+Full provenance, authoritative URLs, licenses, retrieval notes, row counts, and SHA-256 checksums are in [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) and [`data/metadata/data_catalog.json`](data/metadata/data_catalog.json).
 
-## What the application does
+## Workspaces
 
-- Loads the bundled demonstration dataset or a user CSV/XLSX file.
-- Rejects empty files, files above 100,000 rows, and files above 200 columns with clear validation messages.
-- Maps common column names into a canonical schema.
-- Validates dates, salaries, categories, duplicates, and missing values.
-- Detects and masks recruiter names, emails, phone numbers, and source IDs.
-- Classifies question intent locally with TF-IDF and logistic regression.
-- Converts the question into a visible, structured `QueryPlan`.
-- Validates every field, filter, operation, and metric against an allowlist.
-- Calculates the answer with deterministic Pandas operations.
-- Shows a chart, result table, masked source rows, calculation steps, sample size, and confidence score.
-- Generates a reproducible Evidence ID and downloadable proof bundle.
-- Refuses unsupported, unsafe, private, predictive, or discriminatory questions.
+### Ask CareerProof
 
-## Unique features
+Ask natural-language questions and optionally choose the dataset route. Each supported answer includes:
 
-### Evidence Passport
+- Direct answer and plain-language summary
+- Result chart and source-backed table
+- Official agency, dataset, and vintage
+- Visible query plan and deterministic calculation
+- Rows considered and rows returned
+- Evidence-based confidence label
+- Limitations and nearby answerable questions
+- Reproducible Evidence ID
+- Downloadable HTML evidence report
 
-Every supported answer receives an Evidence ID derived from the dataset fingerprint, privacy-safe validated query plan, and deterministic result table. Any meaningful calculation change produces a different ID. The Trust Center can re-upload a proof bundle and recompute the ID. When the active dataset matches, CareerProof reruns the validated plan and confirms that the result reproduces instead of trusting a saved answer on its own.
+### Occupation Explorer
 
-### Refusal Coach
+Search 830 detailed occupations and open a unified profile containing:
 
-Unsupported questions are not only refused. The interface suggests the closest questions that the supplied dataset can answer with evidence.
+- May 2025 national wage and employment estimates
+- 2024–2034 growth and annual openings
+- Typical entry education
+- O*NET description, skills, knowledge, tasks, tools, and education responses
+- Highest-paying states with published estimates
 
-### Career Signal Lab
+### Question Library
 
-A user can enter skills they already have and compare them with the most frequent required-skill signals for a selected role. The feature shows transparent overlap and missing signals without pretending to predict hiring.
+The interface lists questions grouped by the dataset that can answer them. See [`docs/QUESTION_CATALOG.md`](docs/QUESTION_CATALOG.md).
 
-### Scenario Compare
+### Data Catalog
 
-Users can compare two work modes, experience levels, states, or roles across posting count, salary coverage, median salary midpoint, companies represented, and top skill.
+Every source is named, dated, linked, licensed, and checksum-recorded. Raw source files and processed analytical tables are bundled for offline demonstration and reproducibility.
 
-### Cleaning Ledger
+### Trust Center
 
-Every cleaning action is visible. Duplicate IDs, invalid salary ranges, invalid dates, category normalization, and generated IDs are disclosed instead of silently hidden.
+The application makes the trust boundary visible:
 
-## Trust and safety design
+1. A local TF-IDF and logistic-regression model classifies the question intent.
+2. Deterministic rules identify occupations, states, degree fields, and supported operations.
+3. The application builds an allowlisted query plan.
+4. Pandas performs the calculation against a specific official snapshot.
+5. CareerProof shows the source, evidence, confidence, limitations, and Evidence ID.
 
-| Control | What it prevents |
-|---|---|
-| Structured query plan | Free-form model-generated code |
-| Field and operation allowlists | Arbitrary columns, SQL, Python, `eval`, or `exec` |
-| Deterministic executor | Invented numerical answers |
-| PII masking | Raw recruiter contacts in UI, reports, downloads, and logs |
-| Minimum sample sizes | Small groups presented as reliable salary rankings |
-| Confidence engine | Confidence based only on model tone |
-| Unsupported-question refusal | Claims about unavailable fields or future outcomes |
-| Audit log | Invisible decisions and untraceable calculations |
-| Evidence Passport verifier | Modified proof bundles or results that do not reproduce from the active dataset |
+No user prompt or model output is executed as Python or SQL.
 
-## Architecture
+## Example questions
 
-![CareerProof AI architecture](docs/architecture.svg)
+- Which states pay nuclear engineers the most?
+- What skills do public relations specialists need?
+- What is the job outlook for political scientists?
+- How much do lawyers earn in Maryland?
+- What software do broadcast technicians use?
+- Compare lawyers and political scientists.
+- Which broad bachelor's degree fields have the highest national median earnings?
+- Compare communications and engineering degree earnings.
+- How do national wages compare by typical entry-level education?
+- Which metro areas pay the most for occupations typically requiring a bachelor's degree?
 
-1. Load CSV or XLSX.
-2. Map and validate the schema.
-3. Clean data and record every action.
-4. Mask sensitive fields for display and export.
-5. Use local AI to classify the question intent.
-6. Create and validate a structured query plan.
-7. Run deterministic Pandas calculations.
-8. Generate evidence, confidence, charts, exports, and an audit event.
+Expected safe-refusal example:
 
-More detail is in [docs/architecture.md](docs/architecture.md).
+```text
+What bachelor's degree should I pursue for the highest pay after becoming a lawyer?
+```
 
-## Bundled dataset
+The bundled datasets cannot connect an individual's undergraduate major to later earnings specifically as a lawyer. CareerProof refuses the causal claim and separates it into answerable questions about broad degree-field earnings, lawyer education requirements, and lawyer wages and outlook.
 
-The repository includes `data/raw/job_postings.csv` with 654 raw rows and 646 cleaned rows. It contains fictional companies, contacts, and job listings across multiple roles, locations, work modes, experience levels, salaries, and skills.
+## Install on Ubuntu or Linux
 
-> This dataset is synthetic and was generated for demonstration and evaluation. It does not represent current real-world hiring conditions.
-
-The raw data intentionally contains a small number of duplicate IDs, invalid salaries, an invalid date, missing fields, and unknown categories so the quality and cleaning workflow can be demonstrated. No real personal data is included.
-
-## Install
-
-Python 3.11 or newer is required. The simplest setup is:
+Python 3.11 or newer is required.
 
 ```bash
+sudo apt update
+sudo apt install python3-venv python3-full -y
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
-
-For development tools, including Ruff, use:
-
-```bash
-python -m pip install -r requirements-dev.txt
-```
-
-An editable package install is optional:
-
-```bash
-python -m pip install -e ".[dev]" --no-build-isolation
-```
-
-The app launcher adds the local `src` directory automatically, so `python app.py` works after installing the requirements even without an editable package install.
 
 ## Run
 
@@ -124,127 +119,79 @@ The app launcher adds the local `src` directory automatically, so `python app.py
 python app.py
 ```
 
-Open the local URL shown in the terminal, normally `http://127.0.0.1:7860`.
+Open:
 
-No API key is required.
+```text
+http://127.0.0.1:7860
+```
+
+No API key is required because verified official snapshots are bundled.
 
 ## Test
 
 ```bash
+python -m pip install -r requirements-dev.txt
 pytest -q
-```
-
-## Smoke-test the real application server
-
-```bash
-python scripts/smoke_test_app.py
-```
-
-The script starts the Gradio app on a temporary local port, waits for HTTP 200, checks the CareerProof title marker, and shuts the process down.
-
-## Run the judge-ready demo checks
-
-```bash
 python scripts/run_demo_checks.py
-```
-
-## Verify the submission package
-
-```bash
+python scripts/smoke_test_app.py
 python scripts/verify_submission.py
 ```
 
-## Build the final ZIP
+## Build the ZIP
 
 ```bash
 python scripts/build_submission.py
 ```
 
-The package command requires a clean Git working tree, runs a static preflight, records the current commit in the manifest, extracts the ZIP, runs the complete test and demo suites against the packaged files, launches the packaged app, and then reports the final checksum.
-
-The final package is created at:
+Output:
 
 ```text
-dist/careerproof-ai-submission.zip
+dist/careerproof-ai-official-data.zip
 ```
 
-## Judge-ready questions
+## Rebuild processed tables
 
-1. Which cities have the most entry-level job postings?
-2. What are the ten most requested skills for remote jobs?
-3. Which companies have the most internship opportunities?
-4. What is the median salary range by experience level?
-5. How does estimated salary compare between remote, hybrid, and on-site jobs?
-6. What percentage of postings do not disclose salary?
-7. How has job-posting volume changed over time?
-8. Which skills appear most often in electrical engineering and embedded-systems roles?
-9. Which states have the highest number of entry-level engineering jobs?
-10. Which companies have the highest median salary among companies with at least five postings?
+The raw official source files are bundled in `data/raw/`. Rebuild all normalized analytical tables and checksums with:
 
-Expected refusal case:
-
-```text
-Which company has the happiest employees?
+```bash
+python scripts/build_official_data.py
 ```
-
-The application explains that the dataset has no employee-satisfaction field and suggests answerable alternatives.
-
-## Evidence exports
-
-Every analysis can export:
-
-- HTML evidence report
-- Masked source-row CSV
-- Result-table CSV
-- Validated query plan JSON
-- Full proof bundle JSON
-- Data-quality report
-
-The proof bundle can be re-uploaded in the Trust Center. CareerProof checks its content-addressed Evidence ID and, when it belongs to the active dataset, reruns the validated plan to confirm reproducibility.
-
-Reports identify whether the analysis used the bundled synthetic dataset or a user-supplied upload. User uploads are never mislabeled as synthetic.
 
 ## Repository structure
 
 ```text
-app.py                         Launches the Gradio application
-src/careerproof/               Data, AI, calculation, privacy, evidence, and UI modules
-data/raw/                      Bundled synthetic CSV and formatted workbook
-tests/                         Unit, integration, export, refusal, and adversarial tests
-scripts/                       Dataset, demo, verification, preview, and packaging tools
-docs/                          Architecture, presentation, security, demo, and submission material
-templates/report.html          Portable evidence-report template
+app.py                         FastAPI and Uvicorn launcher
+src/careerproof/               Data store, intent model, query engine, evidence, reporting, and web app
+static/                        Responsive custom CSS and vanilla JavaScript
+                               with navy, green, and blue design tokens
+templates/app.html             Product interface
+data/raw/                      Bundled official source snapshots
+data/processed/                Normalized analytical CSV files
+data/metadata/                 Source catalog, checksums, aliases, and question catalog
+scripts/                       Data build, testing, verification, smoke test, and packaging tools
+tests/                         Source, query, safety, API, occupation coverage, and UI tests
+docs/                          Architecture, sources, limitations, demo, and submission material
 ```
 
-## Known limitations
+## Important limitations
 
-- The bundled dataset is synthetic and not a live labor-market source.
-- The intent model supports a focused set of analysis patterns rather than unrestricted conversation.
-- Salary analysis only uses rows with both salary endpoints.
-- The app does not predict hiring outcomes or employer quality.
-- Trend charts describe the supplied snapshot and are not forecasts.
-- Uploaded data remains local to the running process, but production deployment would need authentication, encrypted storage, access controls, and retention rules.
+- CareerProof is an official **statistical-data explorer**, not a live job board.
+- OEWS estimates do not include all workers and may suppress small estimates.
+- BLS projections are scenarios, not current vacancies or guarantees.
+- State wage rankings do not adjust for cost of living.
+- O*NET describes typical occupational work, not every employer or position.
+- ACS degree-field earnings are broad associations across all occupations. They do not prove that a major caused higher pay or predict lawyer-specific outcomes.
+- Published group estimates do not guarantee an individual's wage, admission, hiring, or career success.
 
-## Data, APIs, and dependencies
+More detail is in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
 
-- No external API is required.
-- No live job-board data is used.
-- The included dataset is participant-generated synthetic data.
-- Third-party packages and licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-- Data details are in [data/README.md](data/README.md) and [docs/data_dictionary.md](docs/data_dictionary.md).
+## Authoritative source links
 
-## Pre-existing work disclosure
+- BLS OEWS: https://www.bls.gov/oes/
+- BLS Occupational Projections: https://www.bls.gov/emp/data/occupational-data.htm
+- O*NET Database: https://www.onetcenter.org/database.html
+- Census ACS B15013: https://data.census.gov/table/ACSDT1Y2024.B15013
 
-See [PREEXISTING_WORK.md](PREEXISTING_WORK.md). Project-specific code, tests, synthetic data, diagrams, and documentation were created for this hackathon. Open-source packages and the organizer participant guide are disclosed dependencies and references.
+## License and attribution
 
-## Submission assets
-
-- [Judging alignment](JUDGING_ALIGNMENT.md)
-- [Submission checklist](SUBMISSION_CHECKLIST.md)
-- [Submission description](docs/submission_description.md)
-- [Presentation](docs/presentation.md)
-- [Demo script](docs/demo_script.md)
-- [Judge demo cheat sheet](docs/judge_demo_cheatsheet.md)
-- [Checkpoint pack](docs/checkpoint_pack.md)
-- [Testing report](docs/testing_report.md)
-- [Security and privacy](docs/security_and_privacy.md)
+Project code is released under the MIT License. BLS and Census data are U.S. federal government public data. O*NET content is used under the Creative Commons Attribution 4.0 International license. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and [`data/LICENSE.md`](data/LICENSE.md).

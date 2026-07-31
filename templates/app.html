@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CareerProof AI uses official BLS, Census, and O*NET data to answer career questions with visible evidence.">
+  <title>CareerProof AI · Official career data with proof</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">CP</div>
+        <div><strong>CareerProof AI</strong><span>Official-data edition</span></div>
+      </div>
+      <nav class="side-nav">
+        <button class="nav-item active" data-workspace="ask"><span class="nav-icon">⌁</span><span>Ask CareerProof</span></button>
+        <button class="nav-item" data-workspace="occupations"><span class="nav-icon">◎</span><span>Occupation Explorer</span></button>
+        <button class="nav-item" data-workspace="questions"><span class="nav-icon">?</span><span>Question Library</span></button>
+        <button class="nav-item" data-workspace="sources"><span class="nav-icon">▦</span><span>Data Catalog</span></button>
+        <button class="nav-item" data-workspace="trust"><span class="nav-icon">✓</span><span>Trust Center</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="official-badge"><span></span>Official sources only</div>
+        <p>BLS · Census · O*NET</p>
+        <small>Version {{ app_version }}</small>
+      </div>
+    </aside>
+
+    <main id="main-content" class="main">
+      <header class="topbar">
+        <button id="mobileMenu" class="mobile-menu" aria-label="Open navigation">☰</button>
+        <div class="breadcrumb"><span>CareerProof</span><span>/</span><strong id="workspaceLabel">Ask CareerProof</strong></div>
+        <div class="topbar-actions">
+          <button class="ghost-button" id="openSources">View sources</button>
+          <div class="freshness-pill"><span class="pulse-dot"></span><span>Wages: May 2025</span></div>
+        </div>
+      </header>
+
+      <section id="workspace-ask" class="workspace active">
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="eyebrow-dot"></span>TRUSTWORTHY DATA ANALYSIS · TRACK 2</div>
+            <h1>Real career data.<br><span>Answers you can verify.</span></h1>
+            <p>Search wages, employment, education, skills, tasks, and job outlook across hundreds of occupations. Every fact is calculated from official BLS, Census, or O*NET data.</p>
+            <div class="hero-pills"><span>Verified calculations</span><span>Visible sources</span><span>Safe refusal</span></div>
+          </div>
+          <div class="hero-proof-card">
+            <div class="proof-card-top"><div><small>TRUST BOUNDARY</small><strong>AI interprets. Code calculates.</strong></div><span class="shield">✓</span></div>
+            <div class="flow-row"><span>Question</span><i></i><span>Plan</span><i></i><span>Official data</span><i></i><span>Proof</span></div>
+            <div class="source-stripes"><div class="stripe bls">BLS</div><div class="stripe census">CENSUS</div><div class="stripe onet">O*NET</div></div>
+            <p>No synthetic job records. No model-generated numbers. Unsupported questions are refused instead of guessed.</p>
+          </div>
+        </div>
+
+        <div id="statsGrid" class="stats-grid" aria-label="Dataset coverage"></div>
+
+        <section class="ask-panel card">
+          <div class="ask-panel-head">
+            <div><span class="section-kicker">ASK THE DATA</span><h2>What do you want to know?</h2></div>
+            <label class="dataset-field">Source route
+              <select id="datasetSelect">
+                <option value="auto">Automatic · use the best dataset</option>
+                <option value="national">BLS national wages and employment</option>
+                <option value="state">BLS state wages and employment</option>
+                <option value="projections">BLS 2024–2034 projections</option>
+                <option value="onet">O*NET skills, tasks, and knowledge</option>
+                <option value="census">Census degree-field earnings</option>
+                <option value="education">BLS wages by typical education</option>
+              </select>
+            </label>
+          </div>
+          <form id="askForm" class="question-composer">
+            <div class="question-input-wrap">
+              <span class="question-symbol">⌁</span>
+              <textarea id="questionInput" rows="2" maxlength="600" placeholder="Try: Which states pay nuclear engineers the most?" aria-label="Career data question"></textarea>
+              <button type="submit" class="primary-button"><span>Analyze</span><kbd>↵</kbd></button>
+            </div>
+          </form>
+          <div class="quick-questions" id="quickQuestions"></div>
+        </section>
+
+        <section id="resultArea" class="result-area" aria-live="polite">
+          <div class="empty-state card">
+            <div class="empty-icon">↗</div>
+            <div><h3>Start with a real-world career question</h3><p>CareerProof will select the right official dataset, calculate the answer, and show the evidence.</p></div>
+          </div>
+        </section>
+
+        <section class="featured-section">
+          <div class="section-heading"><div><span class="section-kicker">BROAD CAREER COVERAGE</span><h2>From mass communications to nuclear engineering</h2></div><p>Explore roles across media, law, science, engineering, health, technology, education, and public policy.</p></div>
+          <div id="featuredGrid" class="featured-grid"></div>
+        </section>
+      </section>
+
+      <section id="workspace-occupations" class="workspace">
+        <div class="page-heading"><div><span class="section-kicker">OCCUPATION EXPLORER</span><h1>Search 830 detailed occupations</h1><p>Combine national pay, state comparisons, projections, and O*NET work content in one profile.</p></div></div>
+        <div class="explorer-layout">
+          <section class="card search-card">
+            <label for="occupationSearch">Occupation or career field</label>
+            <div class="search-box"><span>⌕</span><input id="occupationSearch" type="search" placeholder="Search public relations, nuclear engineer, political science..."></div>
+            <div id="occupationSearchResults" class="search-results"></div>
+          </section>
+          <section id="occupationProfile" class="card occupation-profile-placeholder">
+            <div class="empty-icon">◎</div><h3>Select an occupation</h3><p>Its official wage, employment, growth, education, skill, task, and state data will appear here.</p>
+          </section>
+        </div>
+      </section>
+
+      <section id="workspace-questions" class="workspace">
+        <div class="page-heading"><div><span class="section-kicker">QUESTION LIBRARY</span><h1>Questions each dataset can answer</h1><p>Use these verified examples or adapt them to a different occupation, state, or field.</p></div></div>
+        <div id="questionLibrary" class="question-library"></div>
+      </section>
+
+      <section id="workspace-sources" class="workspace">
+        <div class="page-heading"><div><span class="section-kicker">DATA CATALOG</span><h1>Every source is named, dated, and traceable</h1><p>CareerProof bundles official snapshots for a reliable demo and records checksums for every raw and processed file.</p></div></div>
+        <div class="source-summary card">
+          <div><strong>No synthetic labor-market records</strong><p>Analytical rows originate from U.S. Bureau of Labor Statistics, U.S. Census Bureau, or O*NET sources.</p></div>
+          <div class="source-summary-badge">6 official source families</div>
+        </div>
+        <div id="sourceCatalog" class="source-catalog"></div>
+      </section>
+
+      <section id="workspace-trust" class="workspace">
+        <div class="page-heading"><div><span class="section-kicker">TRUST CENTER</span><h1>Designed to show its work</h1><p>Trust is enforced by the application, not left to a prompt.</p></div></div>
+        <div class="trust-grid">
+          <section class="card trust-architecture">
+            <span class="section-kicker">ARCHITECTURE</span><h2>A hard boundary between language and facts</h2>
+            <div class="architecture-flow">
+              <div><span>1</span><strong>User question</strong><small>Natural language</small></div><i>→</i>
+              <div class="blue-step"><span>2</span><strong>Intent router</strong><small>TF-IDF + classifier</small></div><i>→</i>
+              <div><span>3</span><strong>Validated plan</strong><small>Allowlisted operations</small></div><i>→</i>
+              <div class="green-step"><span>4</span><strong>Pandas calculation</strong><small>Official data only</small></div><i>→</i>
+              <div><span>5</span><strong>Evidence</strong><small>Rows, source, limitations</small></div>
+            </div>
+          </section>
+          <section class="card controls-card">
+            <span class="section-kicker">VISIBLE CONTROLS</span><h2>What the system prevents</h2>
+            <div class="control-list">
+              <div><span class="control-icon green">✓</span><div><strong>Invented numbers</strong><p>Only deterministic calculations can create factual outputs.</p></div></div>
+              <div><span class="control-icon blue">#</span><div><strong>Hidden provenance</strong><p>Agency, dataset, vintage, plan, and Evidence ID appear with every answer.</p></div></div>
+              <div><span class="control-icon amber">!</span><div><strong>Unsupported conclusions</strong><p>The app refuses unavailable variables, guarantees, causation, and live-vacancy claims.</p></div></div>
+              <div><span class="control-icon red">×</span><div><strong>Arbitrary code</strong><p>User prompts and model output are never executed as Python or SQL.</p></div></div>
+            </div>
+          </section>
+          <section class="card limitations-card">
+            <span class="section-kicker">KNOWN LIMITS</span><h2>What this data does not prove</h2>
+            <ul>
+              <li>Published group estimates do not guarantee an individual's salary or hiring result.</li>
+              <li>Degree-field earnings are associations across all occupations, not causal returns or lawyer-specific outcomes.</li>
+              <li>Annual openings are projections, not live vacancies.</li>
+              <li>State pay rankings do not adjust for cost of living.</li>
+              <li>O*NET describes typical work; individual jobs vary.</li>
+            </ul>
+          </section>
+          <section class="card refusal-demo">
+            <span class="section-kicker">SAFE REFUSAL</span><h2>Ask something the data cannot answer</h2>
+            <blockquote>“What bachelor's degree should I pursue for the highest pay after becoming a lawyer?”</blockquote>
+            <p>The system separates the supported pieces instead of pretending Census degree earnings reveal lawyer-specific outcomes.</p>
+            <button class="secondary-button demo-refusal">Run refusal demo</button>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import pytest
+import sys
+from pathlib import Path
 
-from careerproof.data_loader import load_bundled_dataset
-
-
-@pytest.fixture(scope="session")
-def bundle():
-    return load_bundled_dataset()
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))

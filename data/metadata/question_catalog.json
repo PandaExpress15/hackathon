@@ -1,0 +1,66 @@
+[
+  {
+    "dataset": "BLS OEWS National",
+    "description": "National occupation employment and wage estimates",
+    "questions": [
+      "What are the 10 highest-paying occupations?",
+      "How much do nuclear engineers earn?",
+      "How many public relations specialists are employed nationally?",
+      "Compare lawyers and political scientists.",
+      "What is the pay range for news analysts, reporters, and journalists?"
+    ]
+  },
+  {
+    "dataset": "BLS OEWS State",
+    "description": "State-level occupation wages, employment, and concentration",
+    "questions": [
+      "Which states pay nuclear engineers the most?",
+      "Which states employ the most public relations specialists?",
+      "How much do lawyers earn in Maryland?",
+      "Where are political scientists most concentrated?",
+      "Compare journalists' median pay in Maryland and Virginia."
+    ]
+  },
+  {
+    "dataset": "BLS Employment Projections",
+    "description": "2024 to 2034 growth, openings, and education requirements",
+    "questions": [
+      "Which occupations are projected to grow fastest from 2024 to 2034?",
+      "What is the job outlook for nuclear engineers?",
+      "Which occupations have the most annual openings?",
+      "What education is typically required for political scientists?",
+      "Compare the outlook for public relations specialists and journalists."
+    ]
+  },
+  {
+    "dataset": "O*NET 30.3",
+    "description": "Occupation descriptions, skills, knowledge, tasks, tools, and education responses",
+    "questions": [
+      "What skills do nuclear engineers need?",
+      "What tasks do public relations specialists perform?",
+      "What software do broadcast technicians use?",
+      "What knowledge areas matter most for lawyers?",
+      "What does a political scientist do?"
+    ]
+  },
+  {
+    "dataset": "Census ACS Degree Earnings",
+    "description": "National median earnings by broad field of first bachelor's degree",
+    "questions": [
+      "Which broad bachelor's degree fields have the highest median earnings?",
+      "Compare communications and engineering degree earnings.",
+      "How do social sciences and business degree earnings compare?",
+      "What are the median earnings for communications degree holders?"
+    ]
+  },
+  {
+    "dataset": "BLS Education Wage Aggregates",
+    "description": "Employment and wage estimates grouped by typical entry-level education",
+    "questions": [
+      "How do national wages compare by typical entry-level education?",
+      "Which states have the highest median wage for bachelor's-level occupations?",
+      "Which metro areas pay the most for occupations typically requiring a bachelor's degree?",
+      "How many jobs are in occupations typically requiring a doctoral or professional degree?"
+    ]
+  }
+]

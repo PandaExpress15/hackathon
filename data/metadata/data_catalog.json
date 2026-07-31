@@ -1,0 +1,172 @@
+{
+  "generated_at": "2026-07-30",
+  "product_note": "All bundled analytical records come from official U.S. government or O*NET sources. No synthetic labor-market records are used.",
+  "sources": [
+    {
+      "id": "bls-oews-national-2025",
+      "title": "Occupational Employment and Wage Statistics: National",
+      "agency": "U.S. Bureau of Labor Statistics",
+      "vintage": "May 2025",
+      "authoritative_url": "https://www.bls.gov/oes/current/oes_nat.htm",
+      "download_url": "https://www.bls.gov/oes/special.requests/oesm25nat.zip",
+      "local_raw_file": "data/raw/national_M2025_dl.xlsx",
+      "license": "U.S. federal government public data",
+      "coverage": "National employment and wage estimates for detailed occupations"
+    },
+    {
+      "id": "bls-oews-state-2025",
+      "title": "Occupational Employment and Wage Statistics: State",
+      "agency": "U.S. Bureau of Labor Statistics",
+      "vintage": "May 2025",
+      "authoritative_url": "https://www.bls.gov/oes/current/oessrcst.htm",
+      "download_url": "https://www.bls.gov/oes/special.requests/oesm25st.zip",
+      "local_raw_file": "data/raw/state_M2025_dl.xlsx",
+      "license": "U.S. federal government public data",
+      "coverage": "State employment, wage, and location-quotient estimates by occupation"
+    },
+    {
+      "id": "bls-projections-2024-2034",
+      "title": "Employment Projections: Occupational Projections and Worker Characteristics",
+      "agency": "U.S. Bureau of Labor Statistics",
+      "vintage": "2024\u20132034",
+      "authoritative_url": "https://www.bls.gov/emp/tables/occupational-projections-and-characteristics.htm",
+      "local_raw_file": "data/raw/occupation_2024-2034.xlsx",
+      "license": "U.S. federal government public data",
+      "coverage": "Employment growth, annual openings, education, experience, and training"
+    },
+    {
+      "id": "bls-oews-education-2025",
+      "title": "OEWS Estimates by Typical Entry-Level Education",
+      "agency": "U.S. Bureau of Labor Statistics",
+      "vintage": "May 2025",
+      "authoritative_url": "https://www.bls.gov/oes/education.htm",
+      "download_url": "https://www.bls.gov/oes/special-requests/education_2025.xlsx",
+      "local_raw_file": "data/raw/bls_oes_2025_by_education.xlsx",
+      "license": "U.S. federal government public data",
+      "coverage": "National, state, metro, and industry wage aggregates by typical education"
+    },
+    {
+      "id": "onet-30-3",
+      "title": "O*NET Database",
+      "agency": "O*NET Resource Center, sponsored by the U.S. Department of Labor",
+      "vintage": "30.3",
+      "authoritative_url": "https://www.onetcenter.org/database.html",
+      "download_url": "https://www.onetcenter.org/database.html#all-files",
+      "local_raw_file": "data/raw/onet_occupation_data.csv and related O*NET CSV files",
+      "license": "Creative Commons Attribution 4.0 International",
+      "coverage": "Occupation descriptions, skills, knowledge, tasks, software, job zones, and education responses"
+    },
+    {
+      "id": "census-acs-b15013-2024",
+      "title": "ACS Table B15013: Median Earnings by Field of Bachelor's Degree",
+      "agency": "U.S. Census Bureau",
+      "vintage": "2024 ACS 1-Year",
+      "authoritative_url": "https://data.census.gov/table/ACSDT1Y2024.B15013",
+      "local_raw_file": "Bundled verified table snapshot in data/processed/census_degree_earnings_2024.csv",
+      "license": "U.S. federal government public data",
+      "coverage": "National median earnings for people age 25\u201364 with earnings and a bachelor's degree or higher"
+    }
+  ],
+  "raw_file_checksums": {
+    "data/raw/bls_oes_2025_by_education.xlsx": {
+      "bytes": 1006472,
+      "sha256": "1bb974275978a79f9a018ae977be113748a694b4603ab658b055626ab7a13df0"
+    },
+    "data/raw/national_M2025_dl.xlsx": {
+      "bytes": 289615,
+      "sha256": "852250997ceff9b721ff68f63e877d818f9c1ec8b1b69dd367958faedd5282b2"
+    },
+    "data/raw/occupation_2024-2034.xlsx": {
+      "bytes": 407365,
+      "sha256": "bebf85e71d3a274eb0531077a9fe1bbcd1167e0a14c59e33071f61cbda9d3a57"
+    },
+    "data/raw/onet_education.csv": {
+      "bytes": 1919069,
+      "sha256": "a6c949af50e7f3edc79e322e5eea59b716fc5880d882bdec04f9a93208619a35"
+    },
+    "data/raw/onet_essential_skills.csv": {
+      "bytes": 2286883,
+      "sha256": "4b709259b07de7e414f2d524365ce79dcce0e1c79c6e9ed35a4bc02163cf3737"
+    },
+    "data/raw/onet_job_zones.csv": {
+      "bytes": 60062,
+      "sha256": "075782b37d63dfa37d8afa6dea975388350baf2f4d1906e39b66766a05d72ba8"
+    },
+    "data/raw/onet_knowledge.csv": {
+      "bytes": 7887757,
+      "sha256": "ec5cafa88466ae350fdd51eefc3c63ff1cb7765af4c38381a613882a59238db1"
+    },
+    "data/raw/onet_occupation_data.csv": {
+      "bytes": 268030,
+      "sha256": "a09eae1d6609686e44e05b7290993a1c8b523d8ca224bc0eedc194c855c3ee02"
+    },
+    "data/raw/onet_software_skills.csv": {
+      "bytes": 3557545,
+      "sha256": "6aabb96b464288db849580e6510530efff3f80e25dde2bb23f1fc36bb526b016"
+    },
+    "data/raw/onet_task_statements.csv": {
+      "bytes": 3446784,
+      "sha256": "6462c5fef4e2b21ae2f1b85e5c3d6711ba5bef79e8c6091da48c1a26e9983a75"
+    },
+    "data/raw/state_M2025_dl.xlsx": {
+      "bytes": 7675521,
+      "sha256": "e9590ec791fd2941341631f84ee6445d3df931c1ad5776b80ea07c9f89fba95d"
+    }
+  },
+  "processed_file_checksums": {
+    "occupations": {
+      "path": "data/processed/occupations.csv",
+      "bytes": 551652,
+      "sha256": "fa60bdb99b89672b2621733894d184c93eb8b9f963e26d9a58b62cd2351e6867",
+      "rows": 830
+    },
+    "state_wages": {
+      "path": "data/processed/state_wages.csv",
+      "bytes": 5880085,
+      "sha256": "c425a77067fc43040f3e3fb71400548ac1d36f4a4f1c263974bc905046364d3e",
+      "rows": 36168
+    },
+    "essential_skills": {
+      "path": "data/processed/onet_essential_skills.csv",
+      "bytes": 672701,
+      "sha256": "19faf4a1513d48d5b191303b6140995aa0ba997ab13b658bf2785e24a6006705",
+      "rows": 8070
+    },
+    "knowledge": {
+      "path": "data/processed/onet_knowledge.csv",
+      "bytes": 886385,
+      "sha256": "dd7c8b4c64493c9b0a9e77f37c0782be545fcd07a2a24c62cf3f8e94c74fd9d3",
+      "rows": 9615
+    },
+    "software": {
+      "path": "data/processed/onet_software_tools.csv",
+      "bytes": 1330974,
+      "sha256": "14a216bc9facf9eaf52ff0d5fcc19a63fb852d06bfe0191489927340fc34dca2",
+      "rows": 11940
+    },
+    "tasks": {
+      "path": "data/processed/onet_tasks.csv",
+      "bytes": 1626118,
+      "sha256": "46abcc408d3d35af5a587fe493180b99ffa11e9e3bfb04a6e8ea595592b35aa7",
+      "rows": 9442
+    },
+    "education": {
+      "path": "data/processed/onet_education_responses.csv",
+      "bytes": 361389,
+      "sha256": "8ed2b031808e357262ab82d1048b4e06d1d6e9a84416286ef1fcd67c43d6b6be",
+      "rows": 3755
+    },
+    "degree_earnings": {
+      "path": "data/processed/census_degree_earnings_2024.csv",
+      "bytes": 5022,
+      "sha256": "0a0eb09b352bf6fca17d82df2c676ccf07b3064ad56d115c6a8a98e7c2aee3ae",
+      "rows": 16
+    },
+    "education_wages": {
+      "path": "data/processed/education_wages_2025.csv",
+      "bytes": 972578,
+      "sha256": "3fb2a3cc5597a6a8104712fe11b3275567a27cc20f23ac5e3cbf4a3892405997",
+      "rows": 4664
+    }
+  }
+}
