@@ -1,6 +1,6 @@
 # Testing Report
 
-Generated from real executions on **2026-08-01T04:52:56+00:00** by `python scripts/run_demo_checks.py`.
+Generated from real executions on **2026-08-01T16:39:01+00:00** by `python scripts/run_demo_checks.py`.
 
 ## Summary
 

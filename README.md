@@ -1,5 +1,9 @@
 # CareerProof AI
 
+> **Build variant:** Full visual showcase submission candidate (`5.1.0-showcase`)  
+> Uses approved screenshot-grounded artwork in the homepage journey, Career Universe overview, and Skills Bridge visual surface while preserving live data, controls, and evidence workflows.
+
+
 ## Plan your future with AI. Not for AI.
 
 CareerProof AI is a working **Track 2: Trustworthy Data Analysis** product that helps students and early-career users answer a difficult question:
@@ -10,7 +14,7 @@ CareerProof does not claim that any job is permanently AI-proof. It interprets a
 
 > **AI interprets. Code calculates. Evidence verifies. You decide.**
 
-![CareerProof AI home dashboard](docs/assets/careerproof-home.png)
+![CareerProof AI 5.0 home dashboard](docs/redesign-previews/01-home.png)
 
 ## Why it matters
 
@@ -40,7 +44,27 @@ The current build loads and validates:
 
 The application contains **no synthetic labor-market records**.
 
-## What the presentation-ready 4.1 build adds
+## What the revamped 5.0 build adds
+
+
+### A cohesive, screen-specific visual system
+
+CareerProof 5.0 translates the approved design references into the working product rather than displaying static mockups. Each major workspace has a distinct visual identity while retaining the same navigation, evidence language, spacing system, and accessible dark foundation:
+
+- Quote-led homepage with a pathway visual and compact evidence dashboard
+- Four-stage Career Universe with realistic category planets and fixed career moons
+- Guided four-step Build My Path workflow
+- Head-to-head Compare Lab battle arena
+- Visual Skills Bridge connecting a current career to a target career
+- Four-stage Evidence Center trust journey
+- Split Ask CareerProof conversation and live-evidence workspace
+- Unified Occupation Explorer, Degree Explorer, Location Intelligence, My Career Plan, and Judge Mode
+
+See [the complete CareerProof 5.0 redesign report](docs/CAREERPROOF_5_REDESIGN_REPORT.md) and [the live UI preview set](docs/redesign-previews/).
+
+### Smarter and more mistake-resistant interpretation
+
+The controlled AI layer now repairs common spelling mistakes for review, detects missing or conflicting inputs, preserves follow-up context, labels uncertainty, and shows the interpreted request before code performs any ranking. User choices are never silently replaced. Unsupported guarantees and unavailable claims are refused with a supported alternative.
 
 ### A two-stage Path Builder
 

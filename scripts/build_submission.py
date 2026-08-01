@@ -12,8 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = ROOT.parent
 DIST = ROOT / "dist"
-ZIP_PATH = OUTPUT_DIR / "careerproof-ai-presentation-ready.zip"
-MANIFEST_PATH = OUTPUT_DIR / "careerproof-ai-presentation-ready.sha256.txt"
+ZIP_PATH = OUTPUT_DIR / "careerproof-ai-revamped-final.zip"
+MANIFEST_PATH = OUTPUT_DIR / "careerproof-ai-revamped-final.sha256.txt"
 
 EXCLUDED_PARTS = {".git", ".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "node_modules"}
 EXCLUDED_FILES = {".env", ".DS_Store"}
@@ -60,6 +60,10 @@ def validate_extracted_submission(extract_dir: Path) -> None:
         "docs/presentation_ready_build_manifest.json",
         "docs/FINAL_98_BUILD_REPORT.md",
         "docs/RESILIENCE_MODEL_CARD.md",
+        "docs/CAREERPROOF_5_REDESIGN_REPORT.md",
+        "docs/redesign-previews/01-home.png",
+        "docs/redesign-previews/03b-career-universe-profile.png",
+        "scripts/capture_redesign_previews.py",
         "docs/TESTING_REPORT.md",
         "docs/PRESENTATION.html",
         "docs/architecture.svg",
@@ -114,9 +118,9 @@ def main() -> int:
 
     zip_hash = sha256_bytes(ZIP_PATH.read_bytes())
     manifest_lines = [
-        "CareerProof AI 4.1 Presentation-Ready Submission Manifest",
+        "CareerProof AI 5.0 Revamped Submission Manifest",
         f"Generated: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
-        "Application version: 4.1.0-presentation-ready",
+        "Application version: 5.0.0-revamped",
         f"File count: {len(files)}",
         f"ZIP bytes: {ZIP_PATH.stat().st_size}",
         f"ZIP SHA-256: {zip_hash}",

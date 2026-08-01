@@ -46,6 +46,9 @@ class AnalysisResult(BaseModel):
     suggestions: list[str] = Field(default_factory=list)
     evidence_id: str
     profile: dict[str, Any] | None = None
+    interpreted_question: str | None = None
+    input_corrections: list[dict[str, str]] = Field(default_factory=list)
+    human_error_checks: list[str] = Field(default_factory=list)
 
 
 class ProfileInterpretRequest(BaseModel):

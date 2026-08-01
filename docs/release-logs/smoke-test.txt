@@ -1,0 +1,7 @@
+PASS: CareerProof honored the deployment PORT variable and launched on port 46923
+PASS: health endpoint returned 830 occupations and eight source families
+PASS: rendered shell contains the campaign and official-data markers
+PASS: Career Universe returned eight fields and career nodes
+PASS: Path Builder returned six evidence-supported matches
+PASS: Skill Bridge returned its multi-signal component scores
+PASS: live diagnostic returned pass

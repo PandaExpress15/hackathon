@@ -1,5 +1,36 @@
 # Changelog
 
+## 5.0.0 — Revamped Intelligent Experience
+
+### Approved UI implementation
+
+- Rebuilt the homepage around the approved quote-led pathway design
+- Restricted planet and space imagery to the four-stage Career Universe
+- Rebuilt Build My Path as a guided four-step workflow with progressive disclosure
+- Rebuilt Compare Lab as a professional head-to-head battle arena
+- Rebuilt Skills Bridge around a literal career-transition bridge
+- Rebuilt Evidence Center as a four-stage trust journey
+- Added distinct full-screen designs for Ask CareerProof, Occupation Explorer, Degree Explorer, Location Intelligence, My Career Plan, and Judge Mode
+- Added page-specific accent systems so workspaces remain related without blending together
+- Added 14 live-product redesign screenshots and a repeatable preview-capture script
+
+### Intelligence and human-error handling
+
+- Added typo repair with visible correction disclosure
+- Added missing-input, contradiction, unusual-value, and constraint checks
+- Added editable interpretation before recommendation calculation
+- Added confidence-aware explanations, recommendation challenges, and intelligent recovery
+- Preserved deterministic calculations and evidence-backed source routing
+
+### Release validation
+
+- 83/83 unit and integration tests passed
+- 19/19 workflow and supported-question checks passed
+- 11/11 judge diagnostics passed
+- 39/39 Chromium acceptance checks passed
+- Zero browser console or page errors
+- Zero horizontal overflow at a 390-pixel mobile viewport
+
 ## 4.1.0 — Presentation-Ready Judge Build
 
 ### Judge Mode

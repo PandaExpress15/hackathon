@@ -1,0 +1,60 @@
+........................................................................ [ 86%]
+...........                                                              [100%]
+$ /opt/pyvenv/bin/python3 -m compileall -q src app.py scripts
+$ /opt/pyvenv/bin/python3 -m pytest -q
+CAREERPROOF QUESTION AND REFUSAL CHECKS
+========================================================================
+[01] PASS | highest_paying_states      | Which states pay nuclear engineers the most?
+[02] PASS | skills                     | What skills do public relations specialists need?
+[03] PASS | highest_degree_earnings    | Which broad bachelor's degree fields have the highest median earnings?
+[04] PASS | occupation_outlook         | What is the job outlook for political scientists?
+[05] PASS | state_occupation_profile   | How much do lawyers earn in Maryland?
+[06] PASS | occupation_compare         | Compare lawyers and political scientists.
+[07] PASS | tasks                      | What tasks do public relations specialists perform?
+[08] PASS | software_tools             | What software do broadcast technicians use?
+[09] PASS | national_education_wages   | How do national wages compare by typical entry-level education?
+[10] PASS | education_geography_ranking | Which states have the highest median wage for bachelor's-level occupations?
+[11] PASS | unsupported                | What bachelor's degree should I pursue for the highest pay after becoming a lawyer?
+[12] PASS | unsupported                | Which company has the happiest employees?
+
+ADVANCED WORKFLOW CHECKS
+========================================================================
+[W01] PASS | Official data coverage
+[W02] PASS | Ambiguous question routing
+[W03] PASS | Personalized Path Builder
+[W04] PASS | User-controlled Compare Lab
+[W05] PASS | Multi-signal Skill Bridge
+[W06] PASS | Qualitative Degree Pathways
+[W07] PASS | BLS + BEA state opportunity
+
+Summary: 19/19 passed
+CAREERPROOF JUDGE DIAGNOSTIC
+========================================================================
+[01] PASS | Data and AI quality      | Source integrity and reproducibility
+[02] PASS | Working prototype        | Official data scale and breadth
+[03] PASS | Data and AI quality      | Natural-language routing regressions
+[04] PASS | Trust and safety         | Evidence Passport completeness
+[05] PASS | Trust and safety         | Safe refusal behavior
+[06] PASS | Problem and usefulness   | Personalized Path Builder
+[07] PASS | Problem and usefulness   | Human-controlled career comparison
+[08] PASS | Problem and usefulness   | Multi-signal Skill Bridge
+[09] PASS | Trust and safety         | Degree pathway boundaries
+[10] PASS | Data and AI quality      | Cost-of-living location intelligence
+[11] PASS | Demo and storytelling    | Professional visual and demo shell
+========================================================================
+Result: 11/11 checks passed
+Report: /mnt/data/careerproof_rebuilt/docs/judge_diagnostic_results.json
+PASS: CareerProof honored the deployment PORT variable and launched on port 34485
+PASS: health endpoint returned 830 occupations and eight source families
+PASS: rendered shell contains the campaign and official-data markers
+PASS: Career Universe returned eight fields and career nodes
+PASS: Path Builder returned six evidence-supported matches
+PASS: Skill Bridge returned its multi-signal component scores
+PASS: live diagnostic returned pass
+
+SUBMISSION VERIFICATION PASSED
+- Eight official source families and all catalog checksums verified
+- No synthetic job-posting dataset or credential file found
+- Python, JavaScript, tests, natural-language checks, advanced workflows, judge diagnostic, and server smoke test passed
+- The generated 39-check Chromium acceptance report is complete and error-free
+- Career Intelligence workspaces, trust controls, visual identity, documentation, and packaging assets are present

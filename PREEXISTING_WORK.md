@@ -12,7 +12,7 @@ CareerProof AI was developed during the hackathon from earlier exploratory caree
 
 ## Substantial new final-build work
 
-The final 4.1 build adds or substantially rebuilds:
+The final 5.0 build adds or substantially rebuilds:
 
 - Premium dark dashboard based on the approved final mockup
 - Two-stage editable profile interpretation
@@ -34,3 +34,7 @@ The final 4.1 build adds or substantially rebuilds:
 - Updated architecture, demo, presentation, model, and testing documentation
 
 Open-source libraries, public official datasets, and third-party components are disclosed separately.
+
+## Design reference disclosure
+
+The screenshot-grounded decorative artwork and UI concept images were created during iterative design work with OpenAI image generation. They are disclosed as design assets. The final application does not use a whole-page screenshot as a substitute for a working interface.

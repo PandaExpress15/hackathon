@@ -45,6 +45,8 @@ REQUIRED = [
     "docs/presentation_ready_build_manifest.json",
     "docs/FINAL_98_BUILD_REPORT.md",
     "docs/RESILIENCE_MODEL_CARD.md",
+    "docs/CAREERPROOF_5_REDESIGN_REPORT.md",
+    "scripts/capture_redesign_previews.py",
     "docs/browser_acceptance_results.json",
     "docs/final_98_build_manifest.json",
     "docs/assets/careerproof-home.png",
@@ -172,7 +174,7 @@ def main() -> int:
     if release_manifest_path.exists():
         try:
             release = json.loads(release_manifest_path.read_text(encoding="utf-8"))
-            if release.get("version") != "4.1.0-presentation-ready":
+            if release.get("version") != "5.0.0-revamped":
                 failures.append("Presentation-ready release manifest has the wrong application version")
             validation = release.get("validation", {})
             expected = {"pytest": 83, "workflow_checks": 19, "judge_diagnostic": 11, "browser_acceptance": 39}

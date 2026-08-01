@@ -1,0 +1,111 @@
+PASS  Home dashboard loads: active home workspace
+PASS  Home top match is Electrical Engineers: Electrical Engineers
+PASS  Verified coverage metrics render: 5 metric cards
+PASS  Home has explicit AI-proof boundary: boundary visible
+PASS  Home screenshot generated: /mnt/data/careerproof_rebuilt/docs/assets/careerproof-98-home.png
+PASS  Career Universe drills from category to career evidence: 8 categories, 10 career nodes, opened Nuclear Engineers
+PASS  Path Builder shows editable interpretation before calculation: editable profile includes location, education, and priorities
+PASS  Path Builder calculates verified ranking: top=Electrical Engineers; cards=3
+PASS  Path ranking includes 8 transparent components: 8 components
+PASS  Path Builder shows portfolio strategy: 4 portfolio roles
+PASS  Path Builder shows counterfactual scenarios: 6 sensitivity rows
+PASS  Challenge this recommendation works: Challenge this recommendation
+WEAKEST EVIDENCE
+
+Interest Fit 58.0/100 · Openings 68.3/100 · Stability 80.1/100
+
+MISSING INFORMATION
+No core variable is missing, but national occupation data still cannot describe a specif
+PASS  Evidence Passport opens from recommendation: Electrical Engineers: direct values, derived values, contributions, and confidence visible
+PASS  Persistent comparison tray receives careers: Electrical Engineers
+×
+Clear
+Compare
+1
+careers →
+PASS  Path screenshot generated: /mnt/data/careerproof_rebuilt/docs/assets/careerproof-98-path.png
+PASS  Compare Lab calculates tradeoffs and hard constraints: 2 careers; hard-constraint block=True; tradeoff panel=True
+PASS  Compare Lab shows 8-component chart: 8 rows
+PASS  Compare screenshot generated: /mnt/data/careerproof_rebuilt/docs/assets/careerproof-98-compare.png
+PASS  Skills Bridge produces evidence-backed transition analysis: SKILL BRIDGE · CAREERPROOF-DERIVED TRANSITION VIEW
+Public Relations Specialists → Political Scientists
+
+CareerProof estimates 59% occupational-profile similarity by combining O*NET
+PASS  Supported natural-language question returns verified answer: proof=True; plan=True; rows=10; CP
+VERIFIED ANSWER
+District of Columbia pays nuclear engineers at the top of this published ranking
+
+The leading value i
+PASS  Unsupported guarantee question is safely refused: SAFE REFUSAL
+The available data cannot support that conclusion
+
+Official labor statistics describe groups and occupations. They cannot guarantee an individual hiring outcome.
+
+WHY CAREERPROOF STOPPED
+Official labor stati
+PASS  Occupation Explorer opens unified profile: kpis=6; tabs=7; SOC 17-2071 · ENGINEERING & TECHNOLOGY
+Electrical Engineers
+
+Research, design, develop, test, or supervise the manufacturing and i
+PASS  Degree Explorer opens qualitative pathway: ACADEMIC PATHWAY · CIP 14.4701
+Electrical and Computer Engineering
+
+A crosswalk match means the instructional program and occupation are conceptually related; it is not a placement
+PASS  Location Intelligence ranks official state records: rows=53; formula=True; LOCATION INTELLIGENCE
+Where electrical engineers pay may go furthest
+
+CareerProof combines published state median wages with BEA r
+PASS  Saved Plans and decision journal work: 1 saved career(s); decision journal accepted
+PASS  Resilience Model Card exposes formula and limitations: 6 dimensions; CAREERPROOF-DERIVED METHOD · VERSION 1.0.0
+CareerProof Career Resilience Profile
+
+Help users compare human, physical-world, judgment, creative, creden
+PASS  Data Quality monitor loads: LIVE BUNDLED-FILE AUDIT
+Coverage is measured, not assumed
+
+Missing and suppressed values remain missing. CareerProof shows where a result is strong, partial, or limited.
+
+National median wages
+99.4%
+
+
+PASS  Live judge diagnostic passes: ALL CHECKS PASSED
+11/11 live checks passed
+✓
+Official source families
+8
+✓
+Detailed occupations
+830
+✓
+State occupation rows
+36168
+✓
+Degree-to-occupation links
+5917
+✓
+State price-level records
+51
+✓
+Ques
+PASS  Judge Mode loads the complete 10-stage presentation: title=CareerProof AI guided presentation; stages=10; rubric=6; proof_points=4; durations=('7:50', '4:25')
+PASS  Judge Mode displays presenter narration and rubric proof: WHAT THE JUDGES SHOULD NOTICE
+Problem and usefulness · 25%
+
+The visual on the right is generated from the same verified demo payload used by the live app.
+PASS  Judge Mode screenshot generated: /mnt/data/careerproof_rebuilt/docs/assets/careerproof-judge-mode.png
+PASS  Judge Mode switches to a focused quick pitch: stages=6; label=1 / 6; duration=4:25
+PASS  Judge timeline, autoplay control, and reset are reliable: title=The recommendation explains how it could be wrong; reset=1 / 10; autoplay=True/True
+PASS  Judge Mode opens the matching live evidence feature: overlay_closed=True; proof=True; evidence=True; CP
+VERIFIED ANSWER
+Where electrical engineers pay may go furthest
+
+CareerProof combines published state median wages with BEA regional price parities, employment, concentration, an
+PASS  Information text is readable at 100 percent browser zoom: {'body': 16, 'hero': 16, 'pageCopy': 15.5, 'information': 15.5, 'navigation': 15, 'table': 14}
+PASS  One-click demo reset restores clean state: home_active=True; tray_closed=True
+PASS  Reduced-motion preference is honored: media query matched; workspace duration=0s
+PASS  390px mobile layout has no horizontal overflow: horizontal overflow=0px; mobile menu=True; screenshot=careerproof-98-mobile.png
+PASS  No browser console or page errors: {'console_errors': [], 'page_errors': []}
+
+Browser acceptance: 39/39 passed
+Results: /mnt/data/careerproof_rebuilt/docs/browser_acceptance_results.json

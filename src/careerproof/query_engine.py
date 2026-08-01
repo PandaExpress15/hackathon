@@ -49,13 +49,15 @@ class QueryEngine:
         self.intelligence = CareerIntelligence(store)
 
     def answer(self, question: str, dataset: str = "auto", context: dict[str, Any] | None = None) -> AnalysisResult:
-        question = " ".join(question.strip().split())
-        question = self._apply_context(question, context)
-        ai = self.router.classify(question)
-        refused = self._safety_refusal(question, ai.label, ai.confidence)
+        original_question = " ".join(question.strip().split())
+        repaired_question, corrections = self._repair_question(original_question)
+        routed_question = self._apply_context(repaired_question, context)
+        ai = self.router.classify(routed_question)
+        refused = self._safety_refusal(routed_question, ai.label, ai.confidence)
         if refused is not None:
-            return refused
+            return self._attach_input_review(refused, original_question, repaired_question, corrections)
 
+        question = routed_question
         lowered = question.lower()
         dataset = dataset.lower().strip() or "auto"
         route: Callable[[str, str, float], AnalysisResult] | None = None
@@ -80,7 +82,75 @@ class QueryEngine:
         else:
             route = self._national_analysis
 
-        return route(question, ai.label, ai.confidence)
+        result = route(question, ai.label, ai.confidence)
+        return self._attach_input_review(result, original_question, repaired_question, corrections)
+
+    @staticmethod
+    def _repair_question(question: str) -> tuple[str, list[dict[str, str]]]:
+        """Repair only high-confidence input mistakes and disclose every change.
+
+        CareerProof never silently changes a user's intent. The repaired form is
+        visible in the response and the original question remains the displayed
+        question.
+        """
+        replacements = {
+            r"\bsalery\b": "salary",
+            r"\benginering\b": "engineering",
+            r"\bengineeering\b": "engineering",
+            r"\benginer\b": "engineer",
+            r"\bcarer\b": "career",
+            r"\bcarear\b": "career",
+            r"\bresillent\b": "resilient",
+            r"\bresiliant\b": "resilient",
+            r"\bresillience\b": "resilience",
+            r"\bautomatoin\b": "automation",
+            r"\bnucelar\b": "nuclear",
+            r"\bmaryalnd\b": "Maryland",
+            r"\bbachlors\b": "bachelor's",
+            r"\bbacholers\b": "bachelor's",
+            r"\bsoftwear\b": "software",
+            r"\bdata scientest\b": "data scientist",
+        }
+        repaired = question
+        corrections: list[dict[str, str]] = []
+        for pattern, replacement in replacements.items():
+            match = re.search(pattern, repaired, flags=re.IGNORECASE)
+            if not match:
+                continue
+            before = match.group(0)
+            repaired = re.sub(pattern, replacement, repaired, flags=re.IGNORECASE)
+            corrections.append({"from": before, "to": replacement})
+        repaired = re.sub(r"\s+([?.!,])", r"\1", repaired)
+        repaired = " ".join(repaired.split())
+        return repaired, corrections
+
+    @staticmethod
+    def _attach_input_review(
+        result: AnalysisResult,
+        original_question: str,
+        repaired_question: str,
+        corrections: list[dict[str, str]],
+    ) -> AnalysisResult:
+        plan = dict(result.query_plan or {})
+        checks = [
+            "Question length and required entities were validated.",
+            "Any high-confidence spelling repair is shown before the answer.",
+            "The routed dataset and deterministic calculation remain inspectable.",
+        ]
+        if corrections:
+            plan["input_interpretation"] = {
+                "original": original_question,
+                "interpreted_as": repaired_question,
+                "corrections": corrections,
+                "user_control": "Review the interpreted question; no source value or user preference was silently changed.",
+            }
+        return result.model_copy(update={
+            "question": original_question,
+            "query_plan": plan,
+            "interpreted_question": repaired_question,
+            "input_corrections": corrections,
+            "human_error_checks": checks,
+        })
 
     def _apply_context(self, question: str, context: dict[str, Any] | None) -> str:
         if not context:
@@ -289,9 +359,37 @@ class QueryEngine:
                     break
         return found[:limit]
 
+    @staticmethod
+    def _domain_filter(data: pd.DataFrame, lowered: str) -> tuple[pd.DataFrame, str | None]:
+        """Apply a user-stated career family before ranking.
+
+        This prevents a request for high-paying engineering careers from
+        returning unrelated medical occupations. The filters use SOC major
+        groups and occupation titles, not model-generated labels.
+        """
+        soc = data["soc_code"].astype(str)
+        title = data["occupation_title"].astype(str).str.lower()
+        filters: list[tuple[tuple[str, ...], pd.Series, str]] = [
+            (("engineering", "engineer jobs", "engineer careers"), soc.str.startswith("17-"), "engineering and architecture occupations"),
+            (("software", "technology careers", "tech careers"), soc.str.startswith("15-") | title.str.contains("software", regex=False), "computer and mathematical occupations"),
+            (("healthcare", "health care", "medical careers"), soc.str.startswith(("29-", "31-")), "healthcare occupations"),
+            (("legal", "law careers", "law jobs"), soc.str.startswith("23-"), "legal occupations"),
+            (("business", "finance careers"), soc.str.startswith(("11-", "13-")), "management, business, and financial occupations"),
+            (("science careers", "scientist jobs", "scientific careers"), soc.str.startswith("19-") | title.str.contains("scientist", regex=False), "life, physical, and social science occupations"),
+            (("education careers", "teaching careers"), soc.str.startswith("25-"), "education occupations"),
+            (("skilled trades", "trade careers"), soc.str.startswith(("47-", "49-", "51-")), "construction, installation, repair, and production occupations"),
+        ]
+        for phrases, mask, label in filters:
+            if any(phrase in lowered for phrase in phrases):
+                filtered = data.loc[mask].copy()
+                if not filtered.empty:
+                    return filtered, label
+        return data, None
+
     def _national_analysis(self, question: str, ai_intent: str, ai_confidence: float) -> AnalysisResult:
         lowered = question.lower()
         data = self.store.occupations.copy()
+        data, domain_label = self._domain_filter(data, lowered)
         limit = limit_from_question(question)
         if any(term in lowered for term in ["highest-paying", "highest paying", "pay the most", "top paying"]):
             ranked = data.dropna(subset=["annual_median_wage_2025"]).nlargest(limit, "annual_median_wage_2025")
@@ -305,15 +403,15 @@ class QueryEngine:
             return self._base_result(
                 status="supported", question=question, dataset="BLS OEWS National", intent="highest_pay",
                 ai_intent=ai_intent, ai_confidence=ai_confidence,
-                headline=f"{rows[0]['occupation']} has the highest published median wage in this ranking",
-                summary=f"The top result is {money(rows[0]['median_annual_wage'])} per year in the May 2025 national OEWS estimates.",
+                headline=f"{rows[0]['occupation']} has the highest published median wage in this {domain_label or 'occupation'} ranking",
+                summary=f"The top result is {money(rows[0]['median_annual_wage'])} per year in the May 2025 national OEWS estimates" + (f" after filtering to {domain_label}." if domain_label else "."),
                 rows=rows, columns=[
                     {"key": "occupation", "label": "Occupation"}, {"key": "median_annual_wage", "label": "Median annual wage", "format": "currency"},
                     {"key": "employment", "label": "Employment", "format": "number"}, {"key": "education", "label": "Typical entry education"},
                 ],
                 chart=ChartSpec(type="bar", title=f"Top {len(rows)} national median wages", label_key="occupation", value_key="median_annual_wage", value_format="currency"),
-                query_plan={"dataset": "BLS OEWS May 2025 national", "filter": "detailed occupations with published median wage", "grouping": None, "sort": "annual_median_wage_2025 descending", "limit": limit},
-                evidence=evidence_block(calculation="Filtered to detailed occupations with a published annual median wage, sorted descending, and returned the requested number of rows.", filters=["O_GROUP = detailed", "annual median wage is published"], rows_considered=len(data), rows_returned=len(rows)),
+                query_plan={"dataset": "BLS OEWS May 2025 national", "filter": "detailed occupations with published median wage" + (f"; {domain_label}" if domain_label else ""), "grouping": None, "sort": "annual_median_wage_2025 descending", "limit": limit},
+                evidence=evidence_block(calculation="Filtered to the requested career family when stated, kept occupations with a published annual median wage, sorted descending, and returned the requested number of rows.", filters=["O_GROUP = detailed", "annual median wage is published"] + ([domain_label] if domain_label else []), rows_considered=len(data), rows_returned=len(rows)),
                 confidence=Confidence(label="High", score=96, reason="Direct published BLS estimates with no modeled calculation beyond sorting."),
                 source_ids=["bls-oews-national-2025"],
                 limitations=["OEWS estimates describe occupations, not individual offers. Some highly paid occupations may have small employment counts."],

@@ -816,8 +816,30 @@ class CareerIntelligence:
         """
 
         raw_text = " ".join(profile_text.split())[:1200]
+        profile_replacements = {
+            "enginering": "engineering", "enginer": "engineer", "salery": "salary",
+            "resillent": "resilient", "resiliant": "resilient", "automatoin": "automation",
+            "nucelar": "nuclear", "maryalnd": "Maryland", "bachlors": "bachelor's",
+        }
+        corrected_text = raw_text
+        input_corrections: list[dict[str, str]] = []
+        for wrong, right in profile_replacements.items():
+            match = re.search(rf"\b{re.escape(wrong)}\b", corrected_text, flags=re.IGNORECASE)
+            if match:
+                input_corrections.append({"from": match.group(0), "to": right})
+                corrected_text = re.sub(rf"\b{re.escape(wrong)}\b", right, corrected_text, flags=re.IGNORECASE)
+        raw_text = corrected_text
         normalized_text = normalize(raw_text)
-        interpreted_interests = list(dict.fromkeys(interests or []))
+        def unique_casefold(values: list[str]) -> list[str]:
+            seen: set[str] = set()
+            output: list[str] = []
+            for value in values:
+                cleaned = " ".join(str(value).split())
+                key = cleaned.casefold()
+                if cleaned and key not in seen:
+                    seen.add(key); output.append(cleaned)
+            return output
+        interpreted_interests = unique_casefold(interests or [])
         interest_patterns = {
             "Electronics": ("electronics", "electrical circuits", "circuit design", "hardware", "arduino"),
             "Programming": ("programming", "coding", "software development", "computer science"),
@@ -839,7 +861,7 @@ class CareerIntelligence:
             if any(normalize(pattern) in padded_text for pattern in patterns):
                 if canonical not in interpreted_interests:
                     interpreted_interests.append(canonical)
-        interpreted_skills = list(dict.fromkeys(skills or []))
+        interpreted_skills = unique_casefold(skills or [])
         for skill in KNOWN_SKILLS:
             normalized_skill = normalize(skill)
             if skill == "c++":
@@ -863,13 +885,17 @@ class CareerIntelligence:
                 if match:
                     salary_goal = float(match.group(1)) * 1000
 
-        education_terms = [
-            "Doctoral or professional degree", "Master's degree", "Bachelor's degree", "Associate's degree",
-            "Postsecondary nondegree award", "High school diploma or equivalent",
+        education_aliases = [
+            ("Doctoral or professional degree", ("doctoral degree", "professional degree", "doctorate", "phd")),
+            ("Master's degree", ("master's degree", "masters degree", "master degree")),
+            ("Bachelor's degree", ("bachelor's degree", "bachelors degree", "bachelor degree", "four year degree")),
+            ("Associate's degree", ("associate's degree", "associates degree", "associate degree", "two year degree")),
+            ("Postsecondary nondegree award", ("postsecondary certificate", "nondegree award", "trade certificate")),
+            ("High school diploma or equivalent", ("high school diploma", "ged", "no college")),
         ]
-        for term in education_terms:
-            if normalize(term) in normalized_text:
-                education_max = term
+        for canonical, aliases in education_aliases:
+            if any(normalize(alias) in normalized_text for alias in aliases):
+                education_max = canonical
                 break
         detected_constraint_language: list[str] = []
         if any(term in normalized_text for term in ("no more than", "maximum", "at most", "education ceiling")):
@@ -917,6 +943,25 @@ class CareerIntelligence:
             warnings.append("The bundled datasets do not provide a reliable occupation-level remote-work rate, so remote preference is shown but not used as a hard score.")
         if not interpreted_interests and not interpreted_skills:
             warnings.append("Add at least one interest or skill for a more personal match. Otherwise the result will lean on opportunity and resilience variables.")
+        if input_corrections:
+            repairs = ", ".join(f"{item['from']} → {item['to']}" for item in input_corrections)
+            warnings.append(f"CareerProof repaired likely input errors for review: {repairs}. Your original intent was not otherwise changed.")
+        if salary_goal is not None and salary_goal < 20_000:
+            warnings.append("The salary target is unusually low for an annual salary. Confirm that you did not enter an hourly rate or omit a zero.")
+        if salary_goal is not None and salary_goal > 500_000:
+            warnings.append("The salary target is unusually high for an occupation-level median. Confirm the amount before using it as a hard constraint.")
+        if salary_is_hard and not salary_goal:
+            warnings.append("Salary is marked as a hard constraint, but no salary target is entered. The hard toggle will have no effect.")
+        if education_is_hard and (not education_max or education_max == "No limit"):
+            warnings.append("Education is marked as a hard constraint, but no education ceiling is selected.")
+        if not willing_to_relocate and not preferred_state:
+            warnings.append("Relocation is disabled but no preferred state is selected. Add a location so CareerProof can check geographic coverage.")
+        if preferred_state:
+            valid_states = {str(value).casefold() for value in self.store.state_names}
+            if str(preferred_state).casefold() not in valid_states:
+                warnings.append(f"{preferred_state} was not found in the bundled state data. Review the spelling or choose a published state.")
+        if any(term in normalized_text for term in ("no college", "avoid college", "without college")) and education_max in {"Bachelor's degree", "Master's degree", "Doctoral or professional degree"}:
+            warnings.append("Your text suggests avoiding college, but the selected education ceiling allows a four-year or graduate degree. Review this conflict before calculating.")
         goal_parts = []
         if interpreted_interests:
             goal_parts.append("matches " + ", ".join(interpreted_interests[:3]))
@@ -941,6 +986,15 @@ class CareerIntelligence:
                 "Preferred-state records are used only when BLS published the occupation in that state.",
             ],
             "warnings": warnings,
+            "input_review": {
+                "status": "review_needed" if warnings else "clear",
+                "corrections": input_corrections,
+                "checks": [
+                    "Duplicate interests and skills were removed without changing meaning.",
+                    "Salary, education, location, and relocation settings were checked for conflicts.",
+                    "Likely spelling repairs are disclosed and remain editable before ranking.",
+                ],
+            },
             "requires_confirmation": True,
             "normalized_profile": {
                 "profile_text": raw_text,

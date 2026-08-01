@@ -27,3 +27,7 @@ CareerProof uses public official snapshots from BLS, O*NET, Census, BEA, NCES, a
 The application uses system font stacks and original inline SVG/CSS graphics. No proprietary font files are distributed.
 
 Project code is MIT licensed. Third-party libraries and data remain subject to their own licenses and terms.
+
+## OpenAI image generation
+
+OpenAI image generation was used during UI concept development to produce the approved decorative design references. Selected crops may be bundled as non-data visual artwork. All interactive controls, calculations, data displays, and evidence behavior are implemented in the repository.

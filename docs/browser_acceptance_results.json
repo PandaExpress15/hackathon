@@ -1,9 +1,9 @@
 {
-  "generated_at_unix": 1785559874,
-  "duration_seconds": 10.27,
+  "generated_at_unix": 1785602433,
+  "duration_seconds": 24.18,
   "summary": {
-    "passed": 39,
-    "failed": 0,
+    "passed": 38,
+    "failed": 1,
     "total": 39
   },
   "results": [
@@ -30,7 +30,7 @@
     {
       "name": "Home screenshot generated",
       "passed": true,
-      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-98-home.png"
+      "detail": "/mnt/data/careerproof_full_ui/docs/assets/careerproof-98-home.png"
     },
     {
       "name": "Career Universe drills from category to career evidence",
@@ -45,7 +45,7 @@
     {
       "name": "Path Builder calculates verified ranking",
       "passed": true,
-      "detail": "top=Electrical Engineers; cards=8"
+      "detail": "top=Electrical Engineers; cards=3"
     },
     {
       "name": "Path ranking includes 8 transparent components",
@@ -60,7 +60,7 @@
     {
       "name": "Path Builder shows counterfactual scenarios",
       "passed": true,
-      "detail": "15 sensitivity rows"
+      "detail": "6 sensitivity rows"
     },
     {
       "name": "Challenge this recommendation works",
@@ -80,12 +80,12 @@
     {
       "name": "Path screenshot generated",
       "passed": true,
-      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-98-path.png"
+      "detail": "/mnt/data/careerproof_full_ui/docs/assets/careerproof-98-path.png"
     },
     {
       "name": "Compare Lab calculates tradeoffs and hard constraints",
       "passed": true,
-      "detail": "4 careers; hard-constraint block=True; tradeoff panel=True"
+      "detail": "2 careers; hard-constraint block=True; tradeoff panel=True"
     },
     {
       "name": "Compare Lab shows 8-component chart",
@@ -95,22 +95,22 @@
     {
       "name": "Compare screenshot generated",
       "passed": true,
-      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-98-compare.png"
+      "detail": "/mnt/data/careerproof_full_ui/docs/assets/careerproof-98-compare.png"
     },
     {
       "name": "Skills Bridge produces evidence-backed transition analysis",
       "passed": true,
-      "detail": "POSSIBLE PATHWAY \u00b7 NOT A GUARANTEE\nSkill Bridge: Public Relations Specialists \u2192 Political Scientists\n\nThe derived similarity compares occupational profiles; it does not measure a p"
+      "detail": "SKILL BRIDGE \u00b7 CAREERPROOF-DERIVED TRANSITION VIEW\nPublic Relations Specialists \u2192 Political Scientists\n\nCareerProof estimates 59% occupational-profile similarity by combining O*NET"
     },
     {
       "name": "Supported natural-language question returns verified answer",
       "passed": true,
-      "detail": "proof=True; plan=True; rows=10; VERIFIED ANSWER\nDistrict of Columbia pays nuclear engineers at the top of this published ranking\n\nThe leading value is $"
+      "detail": "proof=True; plan=True; rows=10; CP\nVERIFIED ANSWER\nDistrict of Columbia pays nuclear engineers at the top of this published ranking\n\nThe leading value i"
     },
     {
       "name": "Unsupported guarantee question is safely refused",
       "passed": true,
-      "detail": "SAFE REFUSAL\nThe available data cannot support that conclusion\n\nOfficial labor statistics describe groups and occupations. They cannot guarantee an individual hiring outcome.\n\nWHY CAREERPROOF REFUSED\nOfficial labor stati"
+      "detail": "SAFE REFUSAL\nThe available data cannot support that conclusion\n\nOfficial labor statistics describe groups and occupations. They cannot guarantee an individual hiring outcome.\n\nWHY CAREERPROOF STOPPED\nOfficial labor stati"
     },
     {
       "name": "Occupation Explorer opens unified profile",
@@ -120,17 +120,17 @@
     {
       "name": "Degree Explorer opens qualitative pathway",
       "passed": true,
-      "detail": "OFFICIAL CIP 14.4701\nElectrical and Computer Engineering\n\nA crosswalk match means the instructional program and occupation are conceptually related; it is not a placement rate and "
+      "detail": "ACADEMIC PATHWAY \u00b7 CIP 14.4701\nElectrical and Computer Engineering\n\nA crosswalk match means the instructional program and occupation are conceptually related; it is not a placement"
     },
     {
       "name": "Location Intelligence ranks official state records",
       "passed": true,
-      "detail": "rows=53; formula=True; COST-OF-LIVING-ADJUSTED OPPORTUNITY\nWhere electrical engineers pay may go furthest\n\nCareerProof combines published state median wa"
+      "detail": "rows=53; formula=True; LOCATION INTELLIGENCE\nWhere electrical engineers pay may go furthest\n\nCareerProof combines published state median wages with BEA r"
     },
     {
       "name": "Saved Plans and decision journal work",
-      "passed": true,
-      "detail": "1 saved career(s); decision journal accepted"
+      "passed": false,
+      "detail": "TimeoutError: Page.wait_for_selector: Timeout 15000ms exceeded.\nCall log:\n  - waiting for locator(\"#savedWorkspaceList .saved-workspace-item\") to be visible\n"
     },
     {
       "name": "Resilience Model Card exposes formula and limitations",
@@ -160,7 +160,7 @@
     {
       "name": "Judge Mode screenshot generated",
       "passed": true,
-      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-judge-mode.png"
+      "detail": "/mnt/data/careerproof_full_ui/docs/assets/careerproof-judge-mode.png"
     },
     {
       "name": "Judge Mode switches to a focused quick pitch",
@@ -175,14 +175,14 @@
     {
       "name": "Judge Mode opens the matching live evidence feature",
       "passed": true,
-      "detail": "overlay_closed=True; proof=True; evidence=True; VERIFIED ANSWER\nWhere electrical engineers pay may go furthest\n\nCareerProof combines published state median wages with BEA regional price parities, employment, concentration, and O"
+      "detail": "overlay_closed=True; proof=True; evidence=True; CP\nVERIFIED ANSWER\nWhere electrical engineers pay may go furthest\n\nCareerProof combines published state median wages with BEA regional price parities, employment, concentration, an"
     },
     {
       "name": "Information text is readable at 100 percent browser zoom",
       "passed": true,
       "detail": {
         "body": 16,
-        "hero": 15.5,
+        "hero": 19,
         "pageCopy": 15.5,
         "information": 15.5,
         "navigation": 15,
@@ -197,12 +197,12 @@
     {
       "name": "Reduced-motion preference is honored",
       "passed": true,
-      "detail": "media query matched; workspace duration=1e-06s"
+      "detail": "media query matched; workspace duration=0s"
     },
     {
       "name": "390px mobile layout has no horizontal overflow",
       "passed": true,
-      "detail": "horizontal overflow=0px; screenshot=careerproof-98-mobile.png"
+      "detail": "horizontal overflow=0px; mobile menu=True; screenshot=careerproof-98-mobile.png"
     },
     {
       "name": "No browser console or page errors",

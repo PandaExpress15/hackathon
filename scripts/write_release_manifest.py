@@ -26,7 +26,7 @@ def main() -> int:
 
     payload = {
         "project": "CareerProof AI",
-        "version": "4.1.0-presentation-ready",
+        "version": "5.0.0-revamped",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "track": "Track 2 - Trustworthy Data Analysis",
         "product_promise": "Help users discover financially sustainable, AI-resilient careers and build evidence-backed plans.",
@@ -82,7 +82,7 @@ def main() -> int:
             "Career portfolio and practical roadmap",
             "Compare Lab, Skill Bridge, Degree Explorer, Location Intelligence, Career Universe, and Saved Plans",
             "Evidence Passports, dual confidence, data-quality monitor, vintage disclosure, and safe refusal",
-            "Ten-stage presentation-ready Judge Mode",
+            "Ten-stage presentation-ready Judge Mode and full CareerProof 5.0 visual system",
         ],
         "submission_files": {
             "readme": "README.md",

@@ -13,4 +13,4 @@ RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 
 APP_TITLE = "CareerProof AI"
 APP_TAGLINE = "Plan your future with AI. Not for AI."
-APP_VERSION = "4.1.0-presentation-ready"
+APP_VERSION = "5.1.0-showcase"

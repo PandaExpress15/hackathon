@@ -1,0 +1,5 @@
+
+[source-tree verification] skipped by explicit build flag; use only after running verify_submission.py separately
+
+[release manifest] $ /opt/pyvenv/bin/python3 scripts/write_release_manifest.py
+Release manifest: /mnt/data/careerproof_rebuilt/docs/presentation_ready_build_manifest.json

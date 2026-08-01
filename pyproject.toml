@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "careerproof-ai"
-version = "4.1.0"
+version = "5.0.0"
 description = "Interactive official-data career decision intelligence with reproducible evidence"
 requires-python = ">=3.11"
 dependencies = [
