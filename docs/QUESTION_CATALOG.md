@@ -1,68 +1,65 @@
-# Question Catalog
+# Supported Question Catalog
 
-CareerProof routes a question to the source that can support it. Users can select a route manually or leave the source selector on Automatic.
+## National occupation profiles
 
-## BLS OEWS National
+- What does a lawyer earn?
+- Show the wage range for electrical engineers.
+- How many software developers are employed nationally?
 
-- What are the 10 highest-paying occupations?
-- Which detailed occupations employ the most people?
-- How much do nuclear engineers earn?
-- How many public relations specialists are employed nationally?
-- What is the national pay range for journalists?
-- Compare lawyers and political scientists.
-- Compare software developers and mechanical engineers.
+## Projections
 
-## BLS OEWS State
+- What is the job outlook for political scientists?
+- Which occupations have the most projected annual openings?
+- Compare the outlook for lawyers and political scientists.
+
+## State analysis
 
 - Which states pay nuclear engineers the most?
-- Which states employ the most public relations specialists?
-- Where are political scientists most concentrated?
 - How much do lawyers earn in Maryland?
-- Compare journalists' median pay in Maryland and Virginia.
-- Which states have the highest location quotient for broadcast technicians?
+- Which states employ the most public relations specialists?
 
-## BLS Employment Projections 2024–2034
+## Cost of living
 
-- Which occupations are projected to grow fastest?
-- Which occupations have the most annual openings?
-- What is the job outlook for political scientists?
-- What is the outlook for nuclear engineers?
-- What education is typically required for lawyers?
-- Compare the outlook for public relations specialists and journalists.
+- Where does an electrical engineer’s salary go furthest after cost of living?
+- Compare purchasing-power pay for nuclear engineers across states.
 
-## O*NET 30.3
+## O*NET work content
 
-- What skills do nuclear engineers need?
-- What tasks do public relations specialists perform?
+- What skills do public relations specialists need?
+- What tasks do political scientists perform?
 - What software do broadcast technicians use?
-- What knowledge areas matter most for lawyers?
-- What does a political scientist do?
-- What education responses does O*NET report for journalists?
+- What knowledge areas are important for electrical engineers?
 
-## Census ACS Degree Earnings
+## Degree earnings and pathways
 
-- Which broad bachelor's degree fields have the highest median earnings?
-- What are the median earnings for communications degree holders?
+- Which broad bachelor’s degree fields have the highest median earnings?
 - Compare communications and engineering degree earnings.
-- Compare social sciences and business degree earnings.
-- What is the 90 percent margin of error for a field estimate?
+- What careers are related to an electrical engineering program?
 
-The Census table reports broad first-major fields across all occupations. It cannot establish that a degree causes a salary result or isolate later earnings specifically among lawyers.
+## Education-level wage analysis
 
-## BLS Education Wage Aggregates
+- How do national wages compare by typical entry education?
+- Which states have the highest median wage for bachelor’s-level occupations?
 
-- How do national wages compare by typical entry-level education?
-- Which states have the highest median wage for bachelor's-level occupations?
-- Which metro areas pay the most for occupations typically requiring a bachelor's degree?
-- How many jobs are in occupations typically requiring a doctoral or professional degree?
+## Supported follow-up context
 
-## Questions CareerProof refuses
+The interface retains current occupation and source context for controlled follow-ups. Filters and selected entities remain visible.
 
-- Which company has the happiest employees?
-- Which job will guarantee that I get hired?
-- Show me live vacancies hiring near me today.
-- Which protected group is most likely to be hired?
-- What bachelor's major causes the highest pay after becoming a lawyer?
-- Execute Python, SQL, shell commands, or arbitrary code.
+## Refused questions
 
-A refusal explains the missing variable or invalid inference and suggests the closest answerable questions.
+CareerProof refuses:
+
+- Guarantees
+- Individual salary predictions
+- Employer happiness or culture rankings
+- Discriminatory comparisons
+- Causal degree-to-occupation salary claims
+- Live vacancies not present in the bundle
+- Questions requiring unavailable private or confidential data
+- Requests to execute arbitrary code
+
+Example:
+
+> Which bachelor’s degree guarantees the highest salary after becoming a lawyer?
+
+The system explains the missing relationship and suggests supported alternatives.

@@ -22,6 +22,8 @@ def test_core_datasets_have_real_rows() -> None:
     assert len(store.skills) > 5000
     assert len(store.degree_earnings) == 16
     assert len(store.education_wages) > 4000
+    assert len(store.degree_crosswalk) > 5000
+    assert len(store.rpp) == 51
 
 
 def test_catalog_has_official_source_families() -> None:
@@ -30,7 +32,9 @@ def test_catalog_has_official_source_families() -> None:
     assert "Bureau of Labor Statistics" in agencies
     assert "Census Bureau" in agencies
     assert "O*NET" in agencies
-    assert len(store.catalog["sources"]) == 6
+    assert "Bureau of Economic Analysis" in agencies
+    assert "National Center for Education Statistics" in agencies
+    assert len(store.catalog["sources"]) >= 8
 
 
 def test_catalog_explicitly_discloses_no_synthetic_records() -> None:

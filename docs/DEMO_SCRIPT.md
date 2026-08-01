@@ -1,69 +1,84 @@
-# Official-Data Demo Script
+# CareerProof AI 90-Second Judge Demo
 
-Target length: 6 to 8 minutes.
+## Before recording
 
-## Opening
+- Start from the Home dashboard.
+- Click the reset button in the top bar.
+- Confirm the default demonstration profile is visible.
+- Keep the browser at 100% zoom.
+- Do not spend time reading every metric.
 
-CareerProof AI is a trustworthy career-data assistant. The original concept proved calculations against a synthetic dataset. This version replaces those records with official BLS, Census, and O*NET data.
+## 0:00–0:12 — Problem
 
-The promise remains simple: AI interprets the question. Code calculates the answer. The user can inspect the source and proof.
+> “Students are being told to choose a career while AI is changing the job market. Existing tools give lists, but they rarely prove why one path fits a user’s real constraints.”
 
-## Source overview
+Point to the headline and snapshot.
 
-Show the Data Catalog. Point out May 2025 BLS wage data, 2024–2034 BLS projections, O*NET 30.3, 2024 ACS degree earnings, and the BLS education aggregation. Mention that every raw file and processed table has a checksum.
+## 0:12–0:25 — Interpretation
 
-## Success case 1
+Click **Find My Career**.
 
-Ask:
+> “CareerProof first interprets the goal instead of jumping to a black-box ranking.”
+
+Click **Review AI interpretation**.
+
+Point out:
+
+- Electronics, programming, and law
+- Bachelor’s degree hard ceiling
+- Maryland preference
+- $90,000 salary target
+- AI resilience priority
+
+> “The user can correct this before any calculation runs.”
+
+## 0:25–0:42 — Verified recommendation
+
+Click **Confirm and calculate**.
+
+> “Code applies hard gates and scores all 830 occupations across eight visible components.”
+
+Point to Electrical Engineers ranking first, the direct wage and growth values, the resilience profile, and the score contributions.
+
+> “The model never says this career is permanently AI-proof. It explains the human, physical-world, judgment, creative, credential, and routine-task signals behind the result.”
+
+## 0:42–0:55 — Challenge and counterfactual
+
+Click **Challenge recommendation**.
+
+> “The system exposes its weakest evidence, assumptions, and strongest alternative.”
+
+Scroll to **What would change the result**.
+
+> “Changing the user’s priorities recalculates the ranking. The recommendation is not treated as objective truth.”
+
+## 0:55–1:08 — Compare and verify
+
+Open Compare Lab or use the comparison tray.
+
+> “Compare Lab keeps raw values visible while the user changes priorities and hard constraints.”
+
+Open an **Evidence Passport**.
+
+> “Every important value is separated into direct official data, transformed data, and CareerProof-derived calculations, with source and decision confidence.”
+
+## 1:08–1:20 — Safe failure
+
+Open Ask CareerProof and ask:
 
 ```text
-Which states pay nuclear engineers the most?
+Which bachelor's degree guarantees the highest salary after becoming a lawyer?
 ```
 
-Show the result, state ranking, source vintage, rows considered, calculation, limitations, and Evidence ID. Explain that states without a published estimate are excluded rather than guessed.
+> “The datasets cannot prove that relationship, so CareerProof refuses the guarantee and suggests supported questions instead of inventing an answer.”
 
-## Success case 2
+## 1:20–1:30 — Close
 
-Ask:
+> “CareerProof turns career uncertainty into a path the user can inspect, challenge, compare, and act on. AI interprets. Code calculates. Evidence verifies. The user decides.”
 
-```text
-What skills do public relations specialists need?
-```
+## Optional longer demonstration
 
-Show that the route changes to O*NET 30.3. Explain that O*NET importance ratings are published occupational descriptors, not an AI hiring score.
-
-## Broad coverage
-
-Open Occupation Explorer and search:
-
-- public relations
-- journalist
-- nuclear engineer
-- political scientist
-- lawyer
-
-Show that the same interface covers mass communications, policy, law, science, and engineering.
-
-## Degree data
-
-Ask:
-
-```text
-Compare communications and engineering degree earnings.
-```
-
-Show the Census estimates and 90 percent margins of error. State that the result is an association across all occupations.
-
-## Safe refusal
-
-Ask:
-
-```text
-What bachelor's degree should I pursue for the highest pay after becoming a lawyer?
-```
-
-CareerProof refuses to combine separate datasets into an unsupported causal claim. It suggests three supported questions instead.
-
-## Close
-
-CareerProof is not asking the user to trust a chatbot. It gives the user official data, a reproducible calculation, and the limits needed to interpret the result responsibly.
+- Show Location Intelligence and purchasing-power formula.
+- Open the Resilience Model Card.
+- Run System Diagnostics.
+- Save a career and add decision notes.

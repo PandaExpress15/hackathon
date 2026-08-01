@@ -1,39 +1,43 @@
-# Limitations and Responsible Use
+# CareerProof AI Limitations
 
-## Statistical estimates, not individual promises
+## Decision boundary
 
-OEWS, ACS, and BLS projection data describe groups. They do not guarantee a person's salary, admission, employment, promotion, or future outcome.
+CareerProof supports career exploration. It does not guarantee employment, salary, admission, licensing, or long-term job survival.
 
-## No live job postings
+## Data limitations
 
-CareerProof is not a job board. Annual openings are projection estimates and are not current employer vacancies.
+- Estimates describe occupations and groups, not individual offers.
+- Projections are estimates, not current vacancies.
+- Different sources use different years and methods.
+- Suppressed or missing values reduce decision confidence.
+- State estimates may represent small specialized markets.
+- Regional price parity does not include individual taxes, housing choices, or household budgets.
+- O*NET describes typical occupational work and may not match every employer or specialty.
+- Broad degree earnings do not prove that a major caused a salary.
+- CIP-to-SOC links are conceptual and do not establish requirements or placement rates.
 
-## Suppression and missing values
+## Resilience model limitations
 
-BLS may suppress estimates that do not meet publication standards. CareerProof excludes unpublished values from rankings and notes this behavior.
+- The model uses transparent lexical signals and relative percentiles.
+- Keywords cannot capture every nuance of a task.
+- Higher education and credential signals do not prove legal licensing requirements.
+- Physical, interpersonal, and judgment work can still be automated or reorganized.
+- The model is not an official automation forecast.
+- A high score does not mean a career is permanently AI-proof.
 
-## Cost of living
+## Personalization limitations
 
-State and metro wage rankings do not adjust for housing, taxes, transportation, or other regional costs.
+- The system cannot measure a user’s actual proficiency from a self-entered skill label.
+- Remote preference is displayed but not scored because the bundled data lacks a reliable occupation-level remote-work rate.
+- User weights may not perfectly represent their future priorities.
+- A recommendation may change when constraints or evidence change.
 
-## Degree-field earnings
+## Location limitations
 
-ACS B15013 groups people by broad field of first bachelor's degree across all occupations. Differences may reflect occupation, graduate education, location, age, experience, selection, and other factors. They do not establish causation.
+- State results do not describe every local labor market.
+- Purchasing-power adjustment is a broad state comparison.
+- Current openings are not inferred from employment projections.
 
-CareerProof therefore refuses to claim that a bachelor's major causes the highest later lawyer salary. The included sources can separately answer broad degree-field earnings, lawyer education requirements, and lawyer wages and outlook.
+## Safe refusal
 
-## O*NET scope
-
-O*NET describes typical occupation content. Individual jobs and employers can require different skills, tasks, tools, or education.
-
-## Time period
-
-The package uses May 2025 OEWS data, BLS 2024–2034 projections, O*NET 30.3, and the 2024 ACS 1-year table. Users should check the displayed vintage before making time-sensitive decisions.
-
-## Occupation matching
-
-Aliases and fuzzy matching assist navigation. Users should confirm the displayed occupation title and SOC code, especially for broad or ambiguous phrases such as “communications,” “engineer,” or “analyst.”
-
-## Not legal, financial, admissions, or employment advice
-
-CareerProof is an educational data-analysis prototype. Important career and education decisions should use multiple sources and qualified human guidance.
+CareerProof refuses unsupported guarantees, causal conclusions, employer-happiness rankings, discriminatory comparisons, live vacancy claims, and unavailable relationships. A refusal is a product feature, not an error.

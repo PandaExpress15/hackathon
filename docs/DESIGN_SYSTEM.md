@@ -1,23 +1,68 @@
-# Design System
+# CareerProof AI Design System
 
-CareerProof preserves the original restrained product identity and adds blue information accents without replacing the core theme.
+## Visual direction
 
-## Core colors
+CareerProof uses a premium dark career-intelligence aesthetic based on the approved detailed dashboard mockup.
 
-- Deep navy: navigation, hero, trust boundary, primary text structure
-- Emerald green: verified status, safety, official-data availability
-- White and cool gray: analysis canvas, cards, source tables
-- Blue: selected navigation, dataset routing, source provenance, information panels, focus states, charts
-- Amber: caution and limitations
-- Red: refusal and error only
+## Core palette
 
-## Interaction rules
+- Background: deep midnight navy
+- Panels: layered navy glass surfaces
+- Primary action: electric blue to violet gradient
+- Verification: green only
+- Warning: amber
+- Refusal or blocked state: restrained red
+- Text: high-contrast white and cool gray
 
-1. Evidence receives visual priority.
-2. Green means verified or safe.
-3. Blue means information, source routing, or navigation.
-4. Refusal is clear but not alarming.
-5. Every visible control performs a real action.
-6. Dense source tables receive adequate width and progressive disclosure.
-7. The interface uses system fonts and no external visual dependency.
-8. Responsive navigation, keyboard focus, reduced visual noise, and sufficient contrast are built in.
+## Identity
+
+The emblem combines:
+
+- Suit silhouette
+- Blue illuminated lapels
+- Bow-tie data nodes
+- Green verification accent
+- Simplified favicon geometry
+
+## Hierarchy
+
+- Large promise-led hero
+- Persistent user snapshot
+- Verified coverage strip
+- Decision-first content cards
+- Progressive disclosure for formulas and limitations
+- Secondary research tools separated from the primary journey
+
+## Motion
+
+Purposeful transitions include:
+
+- Horizontal page push
+- Shared-element card movement
+- Career node zoom
+- Gradient fade
+- Number count-up
+- Chart growth
+- Evidence drawer expansion
+- Button press feedback
+
+Most transitions use 300–600 milliseconds. Reduced-motion media queries remove nonessential movement.
+
+## Accessibility
+
+- Skip link
+- Semantic navigation
+- Keyboard focus rings
+- Accessible labels
+- High contrast
+- Reduced-motion support
+- List alternatives for graph content
+- Touch-friendly controls
+- 390-pixel responsive layout with zero horizontal overflow
+
+## Design boundaries
+
+- No decorative percentage is displayed without a documented calculation.
+- Green is not used merely for decoration.
+- Dense data is organized through hierarchy and disclosure rather than tiny text.
+- Animations communicate state changes rather than distracting from evidence.

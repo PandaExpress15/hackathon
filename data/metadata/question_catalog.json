@@ -1,18 +1,18 @@
 [
   {
     "dataset": "BLS OEWS National",
-    "description": "National occupation employment and wage estimates",
+    "description": "National occupation employment, median wage, mean wage, and wage-range estimates",
     "questions": [
-      "What are the 10 highest-paying occupations?",
-      "How much do nuclear engineers earn?",
+      "What are the 10 highest-paying detailed occupations?",
+      "How much do nuclear engineers earn nationally?",
       "How many public relations specialists are employed nationally?",
       "Compare lawyers and political scientists.",
-      "What is the pay range for news analysts, reporters, and journalists?"
+      "What is the published wage range for news analysts, reporters, and journalists?"
     ]
   },
   {
     "dataset": "BLS OEWS State",
-    "description": "State-level occupation wages, employment, and concentration",
+    "description": "State occupation wages, employment, jobs per 1,000, and location quotients",
     "questions": [
       "Which states pay nuclear engineers the most?",
       "Which states employ the most public relations specialists?",
@@ -23,7 +23,7 @@
   },
   {
     "dataset": "BLS Employment Projections",
-    "description": "2024 to 2034 growth, openings, and education requirements",
+    "description": "2024–2034 employment change, annual openings, education, experience, and training",
     "questions": [
       "Which occupations are projected to grow fastest from 2024 to 2034?",
       "What is the job outlook for nuclear engineers?",
@@ -34,7 +34,7 @@
   },
   {
     "dataset": "O*NET 30.3",
-    "description": "Occupation descriptions, skills, knowledge, tasks, tools, and education responses",
+    "description": "Occupation descriptions, skills, knowledge, tasks, tools, technology, and job zones",
     "questions": [
       "What skills do nuclear engineers need?",
       "What tasks do public relations specialists perform?",
@@ -61,6 +61,36 @@
       "Which states have the highest median wage for bachelor's-level occupations?",
       "Which metro areas pay the most for occupations typically requiring a bachelor's degree?",
       "How many jobs are in occupations typically requiring a doctoral or professional degree?"
+    ]
+  },
+  {
+    "dataset": "BLS + BEA Purchasing-Power Analysis",
+    "description": "CareerProof-derived state comparisons using OEWS wage and employment estimates plus BEA regional price parities",
+    "questions": [
+      "Where does an electrical engineer's salary go furthest after cost of living?",
+      "Which states combine strong pay and employment for software developers?",
+      "How does Maryland's purchasing-power wage for lawyers compare with nearby states?",
+      "Where is public relations pay strongest after adjusting for state price levels?"
+    ]
+  },
+  {
+    "dataset": "NCES/BLS Degree Pathways",
+    "description": "Qualitative CIP-to-SOC links between instructional programs and related occupations",
+    "questions": [
+      "Which occupations are crosswalked to electrical engineering programs?",
+      "What career possibilities are linked to mass communication programs?",
+      "Which occupations connect to political science and government programs?",
+      "What careers are linked to nuclear engineering programs?"
+    ]
+  },
+  {
+    "dataset": "CareerProof Decision Tools",
+    "description": "Transparent multi-source decision workflows built from official variables and user-controlled priorities",
+    "questions": [
+      "Which careers best match electronics, programming, and a bachelor's-degree limit?",
+      "Compare nuclear engineering, electrical engineering, and law using my priorities.",
+      "What skill and technology gaps separate public relations from political science?",
+      "How would changing salary versus education weights change my career ranking?"
     ]
   }
 ]

@@ -1,0 +1,188 @@
+{
+  "generated_at_unix": 1785483807,
+  "duration_seconds": 7.27,
+  "summary": {
+    "passed": 33,
+    "failed": 0,
+    "total": 33
+  },
+  "results": [
+    {
+      "name": "Home dashboard loads",
+      "passed": true,
+      "detail": "active home workspace"
+    },
+    {
+      "name": "Home top match is Electrical Engineers",
+      "passed": true,
+      "detail": "Electrical Engineers"
+    },
+    {
+      "name": "Verified coverage metrics render",
+      "passed": true,
+      "detail": "5 metric cards"
+    },
+    {
+      "name": "Home has explicit AI-proof boundary",
+      "passed": true,
+      "detail": "boundary visible"
+    },
+    {
+      "name": "Home screenshot generated",
+      "passed": true,
+      "detail": "/mnt/data/careerproof_98_work/docs/assets/careerproof-98-home.png"
+    },
+    {
+      "name": "Career Universe drills from category to career evidence",
+      "passed": true,
+      "detail": "8 categories, 10 career nodes, opened Nuclear Engineers"
+    },
+    {
+      "name": "Path Builder shows editable interpretation before calculation",
+      "passed": true,
+      "detail": "editable profile includes location, education, and priorities"
+    },
+    {
+      "name": "Path Builder calculates verified ranking",
+      "passed": true,
+      "detail": "top=Electrical Engineers; cards=8"
+    },
+    {
+      "name": "Path ranking includes 8 transparent components",
+      "passed": true,
+      "detail": "8 components"
+    },
+    {
+      "name": "Path Builder shows portfolio strategy",
+      "passed": true,
+      "detail": "4 portfolio roles"
+    },
+    {
+      "name": "Path Builder shows counterfactual scenarios",
+      "passed": true,
+      "detail": "15 sensitivity rows"
+    },
+    {
+      "name": "Challenge this recommendation works",
+      "passed": true,
+      "detail": "Challenge this recommendation\nWEAKEST EVIDENCE\n\nInterest Fit 58.0/100 \u00b7 Openings 68.3/100 \u00b7 Stability 80.1/100\n\nMISSING INFORMATION\nNo core variable is missing, but national occupation data still cannot describe a specif"
+    },
+    {
+      "name": "Evidence Passport opens from recommendation",
+      "passed": true,
+      "detail": "Electrical Engineers: direct values, derived values, contributions, and confidence visible"
+    },
+    {
+      "name": "Persistent comparison tray receives careers",
+      "passed": true,
+      "detail": "Electrical Engineers\n\u00d7\nClear\nCompare\n1\ncareers \u2192"
+    },
+    {
+      "name": "Path screenshot generated",
+      "passed": true,
+      "detail": "/mnt/data/careerproof_98_work/docs/assets/careerproof-98-path.png"
+    },
+    {
+      "name": "Compare Lab calculates tradeoffs and hard constraints",
+      "passed": true,
+      "detail": "4 careers; hard-constraint block=True; tradeoff panel=True"
+    },
+    {
+      "name": "Compare Lab shows 8-component chart",
+      "passed": true,
+      "detail": "8 rows"
+    },
+    {
+      "name": "Compare screenshot generated",
+      "passed": true,
+      "detail": "/mnt/data/careerproof_98_work/docs/assets/careerproof-98-compare.png"
+    },
+    {
+      "name": "Skills Bridge produces evidence-backed transition analysis",
+      "passed": true,
+      "detail": "POSSIBLE PATHWAY \u00b7 NOT A GUARANTEE\nSkill Bridge: Public Relations Specialists \u2192 Political Scientists\n\nThe derived similarity compares occupational profiles; it does not measure a p"
+    },
+    {
+      "name": "Supported natural-language question returns verified answer",
+      "passed": true,
+      "detail": "proof=True; plan=True; rows=10; VERIFIED ANSWER\nDistrict of Columbia pays nuclear engineers at the top of this published ranking\n\nThe leading value is $"
+    },
+    {
+      "name": "Unsupported guarantee question is safely refused",
+      "passed": true,
+      "detail": "SAFE REFUSAL\nThe available data cannot support that conclusion\n\nOfficial labor statistics describe groups and occupations. They cannot guarantee an individual hiring outcome.\n\nWHY CAREERPROOF REFUSED\nOfficial labor stati"
+    },
+    {
+      "name": "Occupation Explorer opens unified profile",
+      "passed": true,
+      "detail": "kpis=6; tabs=7; SOC 17-2071 \u00b7 ENGINEERING & TECHNOLOGY\nElectrical Engineers\n\nResearch, design, develop, test, or supervise the manufacturing and i"
+    },
+    {
+      "name": "Degree Explorer opens qualitative pathway",
+      "passed": true,
+      "detail": "OFFICIAL CIP 14.4701\nElectrical and Computer Engineering\n\nA crosswalk match means the instructional program and occupation are conceptually related; it is not a placement rate and "
+    },
+    {
+      "name": "Location Intelligence ranks official state records",
+      "passed": true,
+      "detail": "rows=53; formula=True; COST-OF-LIVING-ADJUSTED OPPORTUNITY\nWhere electrical engineers pay may go furthest\n\nCareerProof combines published state median wa"
+    },
+    {
+      "name": "Saved Plans and decision journal work",
+      "passed": true,
+      "detail": "1 saved career(s); decision journal accepted"
+    },
+    {
+      "name": "Resilience Model Card exposes formula and limitations",
+      "passed": true,
+      "detail": "6 dimensions; CAREERPROOF-DERIVED METHOD \u00b7 VERSION 1.0.0\nCareerProof Career Resilience Profile\n\nHelp users compare human, physical-world, judgment, creative, creden"
+    },
+    {
+      "name": "Data Quality monitor loads",
+      "passed": true,
+      "detail": "LIVE BUNDLED-FILE AUDIT\nCoverage is measured, not assumed\n\nMissing and suppressed values remain missing. CareerProof shows where a result is strong, partial, or limited.\n\nNational median wages\n99.4%\n\n"
+    },
+    {
+      "name": "Live judge diagnostic passes",
+      "passed": true,
+      "detail": "ALL CHECKS PASSED\n11/11 live checks passed\n\u2713\nOfficial source families\n8\n\u2713\nDetailed occupations\n830\n\u2713\nState occupation rows\n36168\n\u2713\nDegree-to-occupation links\n5917\n\u2713\nState price-level records\n51\n\u2713\nQues"
+    },
+    {
+      "name": "Guided Judge Mode opens and advances",
+      "passed": true,
+      "detail": "title=A decision, not another dashboard; active progress=2"
+    },
+    {
+      "name": "One-click demo reset restores clean state",
+      "passed": true,
+      "detail": "home_active=True; tray_closed=True"
+    },
+    {
+      "name": "Reduced-motion preference is honored",
+      "passed": true,
+      "detail": "media query matched; workspace duration=1e-06s"
+    },
+    {
+      "name": "390px mobile layout has no horizontal overflow",
+      "passed": true,
+      "detail": "horizontal overflow=0px; screenshot=careerproof-98-mobile.png"
+    },
+    {
+      "name": "No browser console or page errors",
+      "passed": true,
+      "detail": {
+        "console_errors": [],
+        "page_errors": []
+      }
+    }
+  ],
+  "console_errors": [],
+  "page_errors": [],
+  "method": "Production template, CSS, and JavaScript executed in Chromium; frontend fetch calls routed to the real FastAPI app through TestClient.",
+  "screenshots": [
+    "docs/assets/careerproof-98-home.png",
+    "docs/assets/careerproof-98-path.png",
+    "docs/assets/careerproof-98-compare.png",
+    "docs/assets/careerproof-98-mobile.png"
+  ]
+}

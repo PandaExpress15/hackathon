@@ -1,121 +1,221 @@
 # CareerProof AI
 
-**Ask the job market. See the proof.**
+## Plan your future with AI. Not for AI.
 
-CareerProof AI is a Track 2 trustworthy-data-analysis website that turns official United States career data into clear, reproducible answers. A lightweight local AI classifier interprets the question. Deterministic Pandas code performs every factual calculation and exposes the source, vintage, table, filters, rows used, limitations, and an Evidence ID.
+CareerProof AI is a working **Track 2: Trustworthy Data Analysis** product that helps students and early-career users answer a difficult question:
 
-> **Official data interprets the market. Code proves the answer.**
+> **Which career fits my interests and constraints, offers a financially sustainable path, and retains strong human and real-world advantages as AI changes work?**
 
-The bundled edition contains **no synthetic labor-market records**. It uses verified snapshots from the U.S. Bureau of Labor Statistics, U.S. Census Bureau, and O*NET.
+CareerProof does not claim that any job is permanently AI-proof. It interprets a user goal, calculates recommendations from bundled official data, exposes the formula and tradeoffs, and lets the user challenge every result.
 
-## What changed in the official-data edition
+> **AI interprets. Code calculates. Evidence verifies. You decide.**
 
-- Replaced the synthetic job-posting dataset with real published data.
-- Added six selectable source routes.
-- Expanded coverage to 830 detailed occupations and more than 36,000 state-occupation records.
-- Added mass-communications careers, journalism, public relations, broadcast technology, nuclear engineering, political science, law, health, education, software, and hundreds more.
-- Added a searchable unified occupation profile combining pay, employment, outlook, education, skills, knowledge, tasks, tools, and state wage data.
-- Added a Census degree-field earnings workspace.
-- Added BLS education-level wage comparisons by nation, state, and metropolitan area.
-- Preserved the deep navy, emerald, white, and cool-gray visual identity while adding stronger blue information accents.
-- Preserved visible evidence, safe refusal, source disclosure, and deterministic calculations.
+![CareerProof AI home dashboard](docs/assets/careerproof-home.png)
 
-## Official datasets
+## Why it matters
 
-| Dataset | Vintage | What CareerProof uses it for |
-| --- | --- | --- |
-| BLS Occupational Employment and Wage Statistics, national | May 2025 | National employment, mean wages, median wages, and wage percentiles by detailed occupation |
-| BLS Occupational Employment and Wage Statistics, state | May 2025 | State employment, wages, jobs per 1,000, and location quotients |
-| BLS Employment Projections | 2024–2034 | Employment growth, annual openings, typical education, experience, and training |
-| O*NET Database | Release 30.3 | Occupation descriptions, essential skills, knowledge, tasks, software, job zones, and education responses |
-| Census ACS Detailed Table B15013 | 2024 1-Year | National median earnings by broad field of first bachelor's degree |
-| BLS OEWS estimates by typical entry education | May 2025 | National, state, and metro wage and employment aggregates by typical entry-level education |
+Career information is spread across large government tables, occupational databases, education crosswalks, and regional price data. Generic career quizzes rarely show their evidence. Unrestricted chatbots may summarize career information without proving a number or recognizing when the data cannot answer a question.
 
-Full provenance, authoritative URLs, licenses, retrieval notes, row counts, and SHA-256 checksums are in [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) and [`data/metadata/data_catalog.json`](data/metadata/data_catalog.json).
+CareerProof turns that fragmented evidence into a controlled decision workflow:
 
-## Workspaces
+1. **Discover** relevant careers.
+2. **Compare** the strongest options with user-controlled priorities.
+3. **Verify** every important number and derived score.
+4. **Plan** practical next steps while keeping the user in control.
 
-### Ask CareerProof
+## Verified bundled coverage
 
-Ask natural-language questions and optionally choose the dataset route. Each supported answer includes:
+The current build loads and validates:
 
-- Direct answer and plain-language summary
-- Result chart and source-backed table
-- Official agency, dataset, and vintage
-- Visible query plan and deterministic calculation
-- Rows considered and rows returned
-- Evidence-based confidence label
-- Limitations and nearby answerable questions
-- Reproducible Evidence ID
-- Downloadable HTML evidence report
+- **830** detailed occupations
+- **36,168** state occupation records
+- **5,917** degree-to-occupation relationships
+- **2,142** instructional programs
+- **51** state and District of Columbia regional price parity records
+- **8** documented official source families
+- May **2025** national and state wage estimates
+- **2024–2034** employment projections
+- O*NET release **30.3** work content
+- **2024 ACS 1-Year** broad degree-field earnings
 
-### Occupation Explorer
+The application contains **no synthetic labor-market records**.
 
-Search 830 detailed occupations and open a unified profile containing:
+## What the final 4.0 build adds
 
-- May 2025 national wage and employment estimates
-- 2024–2034 growth and annual openings
-- Typical entry education
-- O*NET description, skills, knowledge, tasks, tools, and education responses
-- Highest-paying states with published estimates
+### A two-stage Path Builder
 
-### Question Library
+The user can describe their goals in normal language and structured controls. CareerProof first presents an editable interpretation containing:
 
-The interface lists questions grouped by the dataset that can answer them. See [`docs/QUESTION_CATALOG.md`](docs/QUESTION_CATALOG.md).
+- Interests and existing skills
+- Work environment preferences
+- Education ceiling
+- Salary target
+- Preferred location
+- Relocation and remote preferences
+- Hard constraints versus soft preferences
+- Eight decision weights
 
-### Data Catalog
+The user confirms or edits that interpretation before ranking begins.
 
-Every source is named, dated, linked, licensed, and checksum-recorded. Raw source files and processed analytical tables are bundled for offline demonstration and reproducibility.
+### Hard feasibility gates
 
-### Trust Center
+Education, salary, and location can be marked as hard constraints. A career that violates a hard constraint is blocked before it can win the ranking. Near misses remain visible with the exact reason they were excluded.
 
-The application makes the trust boundary visible:
+### Eight transparent decision components
 
-1. A local TF-IDF and logistic-regression model classifies the question intent.
-2. Deterministic rules identify occupations, states, degree fields, and supported operations.
-3. The application builds an allowlisted query plan.
-4. Pandas performs the calculation against a specific official snapshot.
-5. CareerProof shows the source, evidence, confidence, limitations, and Evidence ID.
+Every recommendation exposes:
 
-No user prompt or model output is executed as Python or SQL.
+1. Interest and skill fit
+2. Career resilience
+3. Salary
+4. Projected growth
+5. Annual openings
+6. Education access
+7. Location fit
+8. Market stability
 
-## Example questions
+The interface shows raw values, normalized scores, user weights, weighted contributions, the final formula, and missing-data warnings.
 
-- Which states pay nuclear engineers the most?
-- What skills do public relations specialists need?
-- What is the job outlook for political scientists?
-- How much do lawyers earn in Maryland?
-- What software do broadcast technicians use?
-- Compare lawyers and political scientists.
-- Which broad bachelor's degree fields have the highest national median earnings?
-- Compare communications and engineering degree earnings.
-- How do national wages compare by typical entry-level education?
-- Which metro areas pay the most for occupations typically requiring a bachelor's degree?
+### Career Resilience Profile v1.0
 
-Expected safe-refusal example:
+The model compares six inspectable dimensions derived from official occupation descriptions and O*NET work content:
+
+- Human trust: **18%**
+- Physical-world complexity: **18%**
+- High-stakes judgment: **20%**
+- Creativity and adaptation: **16%**
+- Credential and regulatory barrier: **12%**
+- Inverse routine-automation exposure: **16%**
+
+AI augmentation potential is displayed separately. Every dimension exposes matched signals and relevant official task examples.
+
+The score is a **relative CareerProof decision aid**, not an official automation probability or a prediction that a job will survive.
+
+See [the full model card](docs/RESILIENCE_MODEL_CARD.md).
+
+### Recommendation challenger
+
+Every top result includes a **Challenge this recommendation** panel showing:
+
+- Weakest score components
+- Missing or limited evidence
+- Important assumptions
+- Strongest alternative
+- The question that could change the decision
+
+### Counterfactual decision testing
+
+CareerProof recalculates rankings under multiple presets:
+
+- Balance everything
+- Maximize income
+- Maximize AI resilience
+- Maximize opportunity
+- Minimize education burden
+- Prioritize location
+
+The user can see exactly what would move a different career into first place.
+
+### Career portfolio strategy
+
+Instead of forcing one irreversible choice, CareerProof produces:
+
+- Primary path
+- Safer backup
+- High-upside option
+- Fast-entry option
+
+### Evidence Passports
+
+Important results can be opened into an evidence view containing:
+
+- Direct official values
+- CareerProof-derived values
+- Source agencies and vintages
+- Calculation formula
+- Weighted contributions
+- Source confidence
+- Decision confidence
+- Limitations and missing evidence
+
+### Safe refusal
+
+CareerProof refuses claims the bundled data cannot verify, including guaranteed outcomes, employer happiness rankings, causal degree-to-salary claims, discriminatory comparisons, live vacancies, and arbitrary code execution.
+
+Example:
 
 ```text
-What bachelor's degree should I pursue for the highest pay after becoming a lawyer?
+Which bachelor's degree guarantees the highest salary after becoming a lawyer?
 ```
 
-The bundled datasets cannot connect an individual's undergraduate major to later earnings specifically as a lawyer. CareerProof refuses the causal claim and separates it into answerable questions about broad degree-field earnings, lawyer education requirements, and lawyer wages and outlook.
+The application explains that broad degree-field earnings and lawyer occupation wages do not create a verified causal link, then suggests supported questions.
 
-## Install on Ubuntu or Linux
+## Main workspaces
+
+- **Home**: premium decision dashboard, verified coverage, top matches, AI-impact lens, local opportunity, and freshness warning
+- **Career Universe**: functional category-to-career graph backed by defined relationships
+- **Build My Path**: editable interpretation, hard gates, transparent ranking, challenger, sensitivity, and roadmap
+- **Compare Lab**: two-to-four career tradeoff analysis with eight score dimensions
+- **Skills Bridge**: O*NET skill, software, task, wage, growth, and education transition analysis
+- **Degree Explorer**: official qualitative CIP-to-SOC pathways
+- **Location Intelligence**: BLS wages and employment adjusted with BEA regional price parities
+- **Saved Plans**: career shortlist and decision journal stored locally in the browser
+- **Evidence Center**: source catalog, model card, data quality, guardrails, and live diagnostics
+- **Ask CareerProof**: supported natural-language questions with visible query plans and safe refusal
+- **Occupation Explorer**: unified occupation profile across wage, outlook, O*NET, degree, and location evidence
+- **Judge Mode**: guided success case, tradeoff case, evidence case, and refusal case
+
+## Data sources
+
+| Source family | Vintage | Use |
+| --- | --- | --- |
+| BLS Occupational Employment and Wage Statistics, national | May 2025 | National employment and wage distribution |
+| BLS Occupational Employment and Wage Statistics, state | May 2025 | State wages, employment, concentration, and estimate quality |
+| BLS Employment Projections | 2024–2034 | Growth, annual openings, education, experience, and training |
+| BLS OEWS by typical entry education | May 2025 | Education-level wage comparisons by geography |
+| O*NET Database | 30.3 | Descriptions, skills, knowledge, tasks, technologies, and job zones |
+| Census ACS B15013 | 2024 1-Year | Broad bachelor’s-field median earnings and margins of error |
+| BEA Regional Price Parities | 2024 | State purchasing-power adjustment |
+| NCES/BLS CIP-to-SOC crosswalk | CIP 2020 / SOC 2018 | Qualitative instructional-program relationships |
+
+Full provenance, authoritative URLs, licenses, retrieval notes, row counts, and checksums are in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) and [data/metadata/data_catalog.json](data/metadata/data_catalog.json).
+
+## Different source years are not silently blended
+
+CareerProof displays a freshness warning because the official sources describe different periods. Wages, projections, O*NET profiles, degree earnings, and regional prices are useful together as decision context, but they are not one synchronized measurement.
+
+## Architecture
+
+```text
+User question or career profile
+        ↓
+Controlled interpretation and entity resolution
+        ↓
+User review of goals, constraints, and weights
+        ↓
+Allowlisted source route and exact occupation-code joins
+        ↓
+Deterministic calculations and hard feasibility gates
+        ↓
+CareerProof explanation, confidence, challenge, and evidence
+        ↓
+Human-controlled comparison, shortlist, roadmap, or report
+```
+
+No user text or model output is executed as Python or unrestricted SQL.
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/architecture.svg](docs/architecture.svg).
+
+## Install and run
 
 Python 3.11 or newer is required.
 
 ```bash
-sudo apt update
-sudo apt install python3-venv python3-full -y
+cd careerproof-ai
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-## Run
-
-```bash
+python -m pip install -r requirements-dev.txt
 python app.py
 ```
 
@@ -125,73 +225,82 @@ Open:
 http://127.0.0.1:7860
 ```
 
-No API key is required because verified official snapshots are bundled.
+The server honors the deployment `PORT` environment variable and binds to `0.0.0.0` when launched through `app.py`.
 
-## Test
-
-```bash
-python -m pip install -r requirements-dev.txt
-pytest -q
-python scripts/run_demo_checks.py
-python scripts/smoke_test_app.py
-python scripts/verify_submission.py
-```
-
-## Build the ZIP
+## Test and verify
 
 ```bash
-python scripts/build_submission.py
+PYTHONPATH=src pytest -q
+PYTHONPATH=src python scripts/run_demo_checks.py
+PYTHONPATH=src python scripts/judge_diagnostic.py
+PYTHONPATH=src python scripts/smoke_test_app.py
+PYTHONPATH=src python scripts/browser_acceptance.py
+PYTHONPATH=src python scripts/verify_submission.py
 ```
 
-Output:
+Current verified results:
 
-```text
-dist/careerproof-ai-official-data.zip
-```
+- **81/81** unit and integration tests passed
+- **19/19** question and advanced workflow checks passed
+- **11/11** judge diagnostic checks passed
+- **33/33** Chromium browser acceptance checks passed
+- Server smoke test passed
+- Submission checksum, secret, placeholder, and packaging verification passed
+- No browser console errors or page errors
+- 390-pixel layout produced zero horizontal overflow
 
-## Rebuild processed tables
+The browser acceptance suite runs the production template, CSS, and JavaScript in Chromium while routing frontend requests to the real FastAPI application through `TestClient`.
 
-The raw official source files are bundled in `data/raw/`. Rebuild all normalized analytical tables and checksums with:
+## Demonstration path
 
-```bash
-python scripts/build_official_data.py
-```
+The strongest concise demo uses this profile:
 
-## Repository structure
+- Electronics, programming, and law interests
+- Python, Arduino, writing, and problem-solving skills
+- Bachelor’s degree hard ceiling
+- Maryland preference
+- $90,000 median salary target
+- AI resilience as a major priority
 
-```text
-app.py                         FastAPI and Uvicorn launcher
-src/careerproof/               Data store, intent model, query engine, evidence, reporting, and web app
-static/                        Responsive custom CSS and vanilla JavaScript
-                               with navy, green, and blue design tokens
-templates/app.html             Product interface
-data/raw/                      Bundled official source snapshots
-data/processed/                Normalized analytical CSV files
-data/metadata/                 Source catalog, checksums, aliases, and question catalog
-scripts/                       Data build, testing, verification, smoke test, and packaging tools
-tests/                         Source, query, safety, API, occupation coverage, and UI tests
-docs/                          Architecture, sources, limitations, demo, and submission material
-```
+Demo sequence:
+
+1. Review the interpreted request.
+2. Confirm the profile and show Electrical Engineers ranking first.
+3. Open the resilience profile and score contributions.
+4. Challenge the recommendation.
+5. Change priorities in Compare Lab.
+6. Open an Evidence Passport.
+7. Ask the unsupported guarantee question.
+8. Save the plan.
+
+See [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 ## Important limitations
 
-- CareerProof is an official **statistical-data explorer**, not a live job board.
-- OEWS estimates do not include all workers and may suppress small estimates.
-- BLS projections are scenarios, not current vacancies or guarantees.
-- State wage rankings do not adjust for cost of living.
-- O*NET describes typical occupational work, not every employer or position.
-- ACS degree-field earnings are broad associations across all occupations. They do not prove that a major caused higher pay or predict lawyer-specific outcomes.
-- Published group estimates do not guarantee an individual's wage, admission, hiring, or career success.
+- CareerProof is not a live job board.
+- Published estimates describe occupation groups, not individual offers or outcomes.
+- Projections are estimates, not guaranteed future vacancies.
+- The resilience model is transparent but heuristic and relative.
+- Keyword presence cannot capture every workplace nuance.
+- State price parity does not represent an individual household budget.
+- O*NET describes typical work and may not match every employer.
+- Degree crosswalks are conceptual, not placement rates or legal requirements.
+- Remote preference is disclosed but not scored because the bundled data does not provide a reliable occupation-level remote-work measure.
+- CareerProof scores reflect user choices and do not define an objectively best career.
 
-More detail is in [`docs/LIMITATIONS.md`](docs/LIMITATIONS.md).
+See [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
-## Authoritative source links
+## Submission materials
 
-- BLS OEWS: https://www.bls.gov/oes/
-- BLS Occupational Projections: https://www.bls.gov/emp/data/occupational-data.htm
-- O*NET Database: https://www.onetcenter.org/database.html
-- Census ACS B15013: https://data.census.gov/table/ACSDT1Y2024.B15013
+- [JUDGING_ALIGNMENT.md](JUDGING_ALIGNMENT.md)
+- [docs/PRESENTATION.md](docs/PRESENTATION.md)
+- [docs/PRESENTATION.html](docs/PRESENTATION.html)
+- [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)
+- [docs/FINAL_98_BUILD_REPORT.md](docs/FINAL_98_BUILD_REPORT.md)
+- [docs/TESTING_REPORT.md](docs/TESTING_REPORT.md)
+- [docs/browser_acceptance_results.json](docs/browser_acceptance_results.json)
+- [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md)
 
-## License and attribution
+## License and disclosure
 
-Project code is released under the MIT License. BLS and Census data are U.S. federal government public data. O*NET content is used under the Creative Commons Attribution 4.0 International license. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and [`data/LICENSE.md`](data/LICENSE.md).
+Project code is MIT licensed. Official data and third-party components remain subject to their source terms. O*NET content is used under Creative Commons Attribution 4.0. Pre-existing work and third-party dependencies are disclosed in [PREEXISTING_WORK.md](PREEXISTING_WORK.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

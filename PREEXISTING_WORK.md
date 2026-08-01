@@ -1,19 +1,36 @@
-# Pre-Existing Work Disclosure
+# Pre-existing Work Disclosure
 
-CareerProof AI was an existing hackathon concept and interface direction before this official-data rebuild. The prior version used a synthetic demonstration dataset and established the product name, trust-boundary concept, Evidence Passport idea, and navy/green visual language.
+CareerProof AI was developed during the hackathon from earlier exploratory career-dashboard and data-integration work.
 
-This edition adds substantial new functionality:
+## Pre-existing foundations
 
-- Replacement of synthetic records with official BLS, Census, and O*NET data
-- A multi-source data catalog and deterministic router
-- New official-data ingestion and normalization pipeline
-- Unified occupation profiles
-- State wage analysis
-- BLS projection analysis
-- O*NET skills, knowledge, task, tool, and education analysis
-- Census degree-field earnings analysis
-- BLS education-level wage analysis
-- New blue-accented responsive interface
-- New tests, source checksums, documentation, and packaging
+- Initial FastAPI application shell
+- Early official-data ingestion scripts
+- Preliminary occupation search and natural-language routing
+- Earlier light and dark interface experiments
+- Early Career Universe, Path Builder, Compare Lab, Skill Bridge, degree, and evidence concepts
 
-Open-source libraries and official datasets are disclosed dependencies and do not represent original hackathon code.
+## Substantial new final-build work
+
+The final 4.0 build adds or substantially rebuilds:
+
+- Premium dark dashboard based on the approved final mockup
+- Two-stage editable profile interpretation
+- Hard feasibility gates
+- Eight-component scoring
+- Career Resilience Profile v1.0
+- Model card and task-impact explanations
+- Recommendation challenger
+- Counterfactual sensitivity
+- Career portfolio strategy
+- Data-quality and vintage controls
+- Expanded Evidence Passports
+- Persistent comparison tray
+- Saved decision journal
+- One-click reset
+- Full responsive and reduced-motion treatment
+- 81 automated tests
+- 33-check Chromium browser acceptance suite
+- Updated architecture, demo, presentation, model, and testing documentation
+
+Open-source libraries, public official datasets, and third-party components are disclosed separately.

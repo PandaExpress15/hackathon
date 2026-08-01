@@ -1,23 +1,29 @@
 # Third-Party Notices
 
-## Data
-
-- U.S. Bureau of Labor Statistics OEWS and Employment Projections. U.S. federal government public data. https://www.bls.gov/
-- U.S. Census Bureau American Community Survey. U.S. federal government public data. https://www.census.gov/
-- O*NET Database 30.3. Creative Commons Attribution 4.0 International. https://www.onetcenter.org/database.html#license
-
-O*NET® is a trademark of the U.S. Department of Labor, Employment and Training Administration.
-
-## Python packages
+## Runtime libraries
 
 - FastAPI
 - Uvicorn
 - Jinja2
-- Pandas
-- openpyxl
 - Pydantic
+- pandas
+- NumPy
 - scikit-learn
-- python-multipart
-- pytest and httpx for development and testing
+- openpyxl
 
-Each package remains subject to its own license and terms. No external AI service or proprietary runtime API is required.
+## Development and validation libraries
+
+- pytest
+- httpx
+- Playwright
+- Ruff, when available in the development environment
+
+## Data
+
+CareerProof uses public official snapshots from BLS, O*NET, Census, BEA, NCES, and the NCES/BLS CIP-to-SOC crosswalk. O*NET content is used under Creative Commons Attribution 4.0.
+
+## Fonts and visual assets
+
+The application uses system font stacks and original inline SVG/CSS graphics. No proprietary font files are distributed.
+
+Project code is MIT licensed. Third-party libraries and data remain subject to their own licenses and terms.

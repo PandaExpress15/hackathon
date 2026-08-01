@@ -1,116 +1,69 @@
 # CareerProof AI Data Sources
 
-CareerProof bundles fixed official snapshots so the hackathon demo remains reproducible and does not depend on live APIs, rate limits, credentials, or third-party availability. All analytical records come from official U.S. government or O*NET datasets. No synthetic labor-market rows are used.
+CareerProof bundles public official snapshots so the demonstration does not depend on a live external API.
 
-The machine-readable catalog is `data/metadata/data_catalog.json`. It records raw and processed file SHA-256 checksums, byte sizes, and processed row counts.
+## Source catalog
 
-## 1. BLS Occupational Employment and Wage Statistics, national
+| ID | Agency | Dataset | Vintage | Use |
+| --- | --- | --- | --- | --- |
+| `bls-oews-national-2025` | U.S. Bureau of Labor Statistics | Occupational Employment and Wage Statistics, national | May 2025 | National employment and wage distribution |
+| `bls-oews-state-2025` | U.S. Bureau of Labor Statistics | Occupational Employment and Wage Statistics, state | May 2025 | State wages, employment, concentration, and estimate quality |
+| `bls-projections-2024-2034` | U.S. Bureau of Labor Statistics | Employment Projections | 2024–2034 | Growth, openings, education, experience, and training |
+| `bls-oews-education-2025` | U.S. Bureau of Labor Statistics | OEWS by typical entry education | May 2025 | Education-level wage comparisons by geography |
+| `onet-30-3` | O*NET / U.S. Department of Labor | O*NET Database | 30.3 | Descriptions, skills, knowledge, tasks, technologies, education responses, and job zones |
+| `census-acs-b15013-2024` | U.S. Census Bureau | ACS B15013 | 2024 1-Year | Broad bachelor’s-field median earnings and margins of error |
+| `bea-rpp-2024` | U.S. Bureau of Economic Analysis | Regional Price Parities | 2024 | State price-level adjustment |
+| `nces-cip-soc-2020-2018` | NCES and BLS | CIP-to-SOC crosswalk | CIP 2020 / SOC 2018 | Qualitative degree-to-occupation relationships |
 
-- Publisher: U.S. Bureau of Labor Statistics
-- Vintage: May 2025
-- Authoritative page: https://www.bls.gov/oes/current/oes_nat.htm
-- Official download family: https://www.bls.gov/oes/special.requests/oesm25nat.zip
-- Bundled raw file: `data/raw/national_M2025_dl.xlsx`
-- Processed table: `data/processed/occupations.csv`
-- Uses: national employment, mean wage, median wage, hourly wage, and wage percentiles for 830 detailed occupations
-- Terms: U.S. federal government public data
+Authoritative URLs, licenses, retrieval notes, file names, row counts, and SHA-256 checksums are stored in `data/metadata/data_catalog.json`.
 
-The exact workbook was obtained through a public transport mirror because the execution environment could not fetch the official ZIP content type. The application identifies BLS as the authoritative publisher, links to the BLS page, bundles the workbook, and records its checksum. The transport mirror is not treated as the data authority.
+## Verified processed coverage
 
-## 2. BLS Occupational Employment and Wage Statistics, state
+- 830 occupations
+- 36,168 state occupation rows
+- 5,917 degree-to-occupation links
+- 2,142 unique instructional programs
+- 51 price parity geographies
+- 15 detailed broad degree-field groups plus total
+- 583 education-wage geographies
 
-- Publisher: U.S. Bureau of Labor Statistics
-- Vintage: May 2025
-- Authoritative page: https://www.bls.gov/oes/current/oessrcst.htm
-- Official download family: https://www.bls.gov/oes/special.requests/oesm25st.zip
-- Bundled raw file: `data/raw/state_M2025_dl.xlsx`
-- Processed table: `data/processed/state_wages.csv`
-- Uses: state employment, jobs per 1,000, location quotient, mean wage, median wage, and wage percentiles by occupation
-- Processed rows: more than 36,000 state-occupation records
-- Terms: U.S. federal government public data
+## Data categories
 
-Suppressed or unpublished values remain missing and are excluded from rankings with a visible note.
+### Direct official values
 
-## 3. BLS Employment Projections
+Published fields such as median wage, wage percentiles, employment, growth, annual openings, education, skill importance, task statements, price parity, and degree crosswalk relationships.
 
-- Publisher: U.S. Bureau of Labor Statistics
-- Projection window: 2024–2034
-- Authoritative page: https://www.bls.gov/emp/data/occupational-data.htm
-- Official workbook: https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx
-- Bundled raw file: `data/raw/occupation_2024-2034.xlsx`
-- Processed join: `data/processed/occupations.csv`
-- Uses: 2024 and 2034 employment, numeric and percentage change, annual-average openings, typical entry education, related work experience, and on-the-job training
-- Terms: U.S. federal government public data
+### Transformed official values
 
-Annual openings are projections. They are not current vacancies.
+Documented filters, unit conversions, sorts, percentiles, and purchasing-power adjustments.
 
-## 4. BLS OEWS estimates by typical entry-level education
+### CareerProof-derived values
 
-- Publisher: U.S. Bureau of Labor Statistics
-- Vintage: May 2025
-- Authoritative page: https://www.bls.gov/oes/education.htm
-- Official workbook: https://www.bls.gov/oes/special-requests/education_2025.xlsx
-- Bundled raw file: `data/raw/bls_oes_2025_by_education.xlsx`
-- Processed table: `data/processed/education_wages_2025.csv`
-- Uses: employment and wage aggregates by typical entry education for the nation, states, and metropolitan areas
-- Terms: U.S. federal government public data
+Transparent decision scores, market stability, Career Resilience Profile, transition similarity, state opportunity score, and user-weighted rankings.
 
-These categories describe the education BLS typically assigns for entry into occupations. They do not measure the education of every worker and do not estimate a causal return to education.
+Derived values are never labeled as government ratings.
 
-## 5. O*NET Database 30.3
+## Data quality
 
-- Publisher: O*NET Resource Center, sponsored by the U.S. Department of Labor
-- Release: 30.3
-- Authoritative page: https://www.onetcenter.org/database.html
-- License: Creative Commons Attribution 4.0 International
-- Attribution: O*NET® is a trademark of the U.S. Department of Labor, Employment and Training Administration
-- Bundled raw files:
-  - `onet_occupation_data.csv`
-  - `onet_essential_skills.csv`
-  - `onet_knowledge.csv`
-  - `onet_software_skills.csv`
-  - `onet_task_statements.csv`
-  - `onet_education.csv`
-  - `onet_job_zones.csv`
-- Processed tables:
-  - `onet_essential_skills.csv`
-  - `onet_knowledge.csv`
-  - `onet_software_tools.csv`
-  - `onet_tasks.csv`
-  - `onet_education_responses.csv`
+The application monitors:
 
-CareerProof maps the base O*NET-SOC code to the corresponding detailed BLS SOC record. O*NET importance ratings and education responses are published occupational descriptors, not CareerProof hiring scores.
+- Missing wages
+- Suppressed state records
+- Missing projection fields
+- Small employment bases
+- Missing O*NET components
+- Weak or absent degree crosswalk relationships
+- Missing preferred-state coverage
+- Source-vintage differences
 
-## 6. U.S. Census Bureau ACS Detailed Table B15013
+## Source-vintage warning
 
-- Publisher: U.S. Census Bureau
-- Product: 2024 American Community Survey 1-Year Detailed Table B15013
-- Title: Median Earnings in the Past 12 Months by Sex by Field of Bachelor's Degree for First Major
-- Universe: Population age 25 to 64 with earnings and a bachelor's degree or higher
-- Authoritative table: https://data.census.gov/table/ACSDT1Y2024.B15013
-- Bundled verified snapshot: `data/processed/census_degree_earnings_2024.csv`
-- Uses: national median earnings and 90 percent margin of error for broad first-major field groups
-- Terms: U.S. federal government public data
+The sources describe different measurement periods. May 2025 wages, 2024–2034 projections, O*NET 30.3 work content, 2024 ACS earnings, 2024 BEA prices, and the CIP 2020/SOC 2018 crosswalk are useful together as decision context but should not be interpreted as one synchronized snapshot.
 
-The snapshot includes the national total and 15 broad field groups visible in the official table. It does not contain individual records. The table cannot answer which undergraduate major causes the highest earnings within a specific later occupation such as law.
+## Licensing and attribution
 
-## Reproducibility
+- BLS, Census, BEA, and NCES public data remain subject to agency terms.
+- O*NET content is used under Creative Commons Attribution 4.0.
+- The application code is MIT licensed.
 
-Run:
-
-```bash
-python scripts/build_official_data.py
-```
-
-This rebuilds normalized tables from the bundled raw source files and regenerates:
-
-- `data/metadata/data_catalog.json`
-- Raw-file checksums
-- Processed-file checksums
-- Processed row counts
-- Occupation aliases
-- Question catalog
-
-## Data freshness
-
-The interface always displays source vintages. A newer release may become available after the bundled version. A production deployment should implement a scheduled ingestion pipeline, versioned releases, automated schema checks, and a human review before replacing the active snapshot.
+See `data/LICENSE.md` and `THIRD_PARTY_NOTICES.md`.

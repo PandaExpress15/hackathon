@@ -47,6 +47,8 @@ class DataStore:
         self.onet_education = pd.read_csv(PROCESSED_DIR / "onet_education_responses.csv")
         self.degree_earnings = pd.read_csv(PROCESSED_DIR / "census_degree_earnings_2024.csv")
         self.education_wages = pd.read_csv(PROCESSED_DIR / "education_wages_2025.csv", low_memory=False)
+        self.rpp = pd.read_csv(PROCESSED_DIR / "regional_price_parities_2024.csv")
+        self.degree_crosswalk = pd.read_csv(PROCESSED_DIR / "degree_career_crosswalk.csv", dtype={"cip_code": str, "soc_code": str})
         self.catalog = json.loads((METADATA_DIR / "data_catalog.json").read_text(encoding="utf-8"))
         self.question_catalog = json.loads((METADATA_DIR / "question_catalog.json").read_text(encoding="utf-8"))
         self.aliases = json.loads((METADATA_DIR / "occupation_aliases.json").read_text(encoding="utf-8"))
@@ -194,10 +196,15 @@ class DataStore:
             "degree_field_groups": int(len(self.degree_earnings) - 1),
             "education_geographies": int(self.education_wages["geography"].nunique()),
             "official_sources": int(len(self.catalog.get("sources", []))),
+            "degree_occupation_links": int(len(self.degree_crosswalk)),
+            "degree_programs": int(self.degree_crosswalk["cip_code"].nunique()),
+            "price_parity_geographies": int(len(self.rpp)),
             "latest_wage_vintage": "May 2025",
             "projection_window": "2024–2034",
             "onet_release": "30.3",
             "census_vintage": "2024 ACS 1-Year",
+            "rpp_vintage": "2024, released 2026",
+            "crosswalk_vintage": "CIP 2020 / SOC 2018",
         }
 
 

@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-31T02:33:50+00:00",
-  "passed": 12,
-  "total": 12,
-  "results": [
+  "generated_at": "2026-07-31T07:44:08+00:00",
+  "passed": 19,
+  "total": 19,
+  "question_checks": [
     {
       "number": 1,
       "question": "Which states pay nuclear engineers the most?",
@@ -158,6 +158,125 @@
       "evidence_id": "CP-FE25157F656F4282",
       "headline": "The available data cannot support that conclusion",
       "result": "PASS"
+    }
+  ],
+  "workflow_checks": [
+    {
+      "name": "Official data coverage",
+      "passed": true,
+      "detail": {
+        "occupations": 830,
+        "state_occupation_rows": 36168,
+        "states_and_districts": 54,
+        "degree_field_groups": 15,
+        "education_geographies": 583,
+        "official_sources": 8,
+        "degree_occupation_links": 5917,
+        "degree_programs": 2142,
+        "price_parity_geographies": 51,
+        "latest_wage_vintage": "May 2025",
+        "projection_window": "2024\u20132034",
+        "onet_release": "30.3",
+        "census_vintage": "2024 ACS 1-Year",
+        "rpp_vintage": "2024, released 2026",
+        "crosswalk_vintage": "CIP 2020 / SOC 2018"
+      },
+      "error": null
+    },
+    {
+      "name": "Ambiguous question routing",
+      "passed": true,
+      "detail": {
+        "expected": {
+          "What is the salary for software developers?": "occupation_profile",
+          "Which states pay software developers the most?": "highest_paying_states",
+          "What is the job outlook for software developers?": "occupation_outlook",
+          "What software do software developers use?": "software_tools",
+          "What does a lawyer earn?": "occupation_profile",
+          "What does a political scientist do?": "tasks"
+        },
+        "actual": {
+          "What is the salary for software developers?": "occupation_profile",
+          "Which states pay software developers the most?": "highest_paying_states",
+          "What is the job outlook for software developers?": "occupation_outlook",
+          "What software do software developers use?": "software_tools",
+          "What does a lawyer earn?": "occupation_profile",
+          "What does a political scientist do?": "tasks"
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "Personalized Path Builder",
+      "passed": true,
+      "detail": {
+        "results": 6,
+        "top_match": "Electrical Engineers",
+        "formula": "Score = user-weighted interest fit + resilience profile + wage percentile + growth percentile + openings percentile + education fit + location fit + market-stability score. Hard constraints are checked before ranking.",
+        "roadmaps": 6,
+        "score_components": [
+          "education",
+          "growth",
+          "interest_fit",
+          "location",
+          "openings",
+          "resilience",
+          "salary",
+          "stability"
+        ],
+        "counterfactual_scenarios": 6,
+        "challenge_panels": 6
+      },
+      "error": null
+    },
+    {
+      "name": "User-controlled Compare Lab",
+      "passed": true,
+      "detail": {
+        "careers": [
+          "Nuclear Engineers",
+          "Electrical Engineers",
+          "Lawyers"
+        ],
+        "salary_first_top": "Electrical Engineers",
+        "openings_first_top": "Electrical Engineers",
+        "scores_changed": true
+      },
+      "error": null
+    },
+    {
+      "name": "Multi-signal Skill Bridge",
+      "passed": true,
+      "detail": {
+        "overall_score": 58.9,
+        "component_scores": {
+          "skill_importance_readiness": 89.5,
+          "software_overlap": 30.0,
+          "task_similarity": 10.8
+        },
+        "largest_gaps": 5
+      },
+      "error": null
+    },
+    {
+      "name": "Qualitative Degree Pathways",
+      "passed": true,
+      "detail": {
+        "degree": null,
+        "linked_occupations": 5,
+        "qualitative_boundary_present": true
+      },
+      "error": null
+    },
+    {
+      "name": "BLS + BEA state opportunity",
+      "passed": true,
+      "detail": {
+        "states": 53,
+        "top_state": "Texas",
+        "formula": "Opportunity score = 40% purchasing-power wage percentile + 30% employment percentile + 20% location-quotient percentile + 10% inverse employment-estimate RSE."
+      },
+      "error": null
     }
   ]
 }

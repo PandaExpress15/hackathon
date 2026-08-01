@@ -1,0 +1,78 @@
+{
+  "project": "CareerProof AI",
+  "version": "4.0.0-resilience-intelligence",
+  "generated_at": "2026-07-31T07:41:50+00:00",
+  "track": "Track 2 - Trustworthy Data Analysis",
+  "product_promise": "Help users discover financially sustainable, AI-resilient careers and build evidence-backed plans.",
+  "official_data": {
+    "occupations": 830,
+    "state_occupation_rows": 36168,
+    "states_and_districts": 54,
+    "degree_field_groups": 15,
+    "education_geographies": 583,
+    "official_sources": 8,
+    "degree_occupation_links": 5917,
+    "degree_programs": 2142,
+    "price_parity_geographies": 51,
+    "latest_wage_vintage": "May 2025",
+    "projection_window": "2024\u20132034",
+    "onet_release": "30.3",
+    "census_vintage": "2024 ACS 1-Year",
+    "rpp_vintage": "2024, released 2026",
+    "crosswalk_vintage": "CIP 2020 / SOC 2018"
+  },
+  "validation": {
+    "pytest": {
+      "passed": 81,
+      "failed": 0,
+      "total": 81
+    },
+    "workflow_checks": {
+      "passed": 19,
+      "failed": 0,
+      "total": 19
+    },
+    "judge_diagnostic": {
+      "passed": 11,
+      "failed": 0,
+      "total": 11
+    },
+    "browser_acceptance": {
+      "passed": 33,
+      "failed": 0,
+      "total": 33
+    },
+    "browser_console_errors": 0,
+    "browser_page_errors": 0,
+    "mobile_horizontal_overflow_px": 0
+  },
+  "core_features": [
+    "Full dark professional dashboard and responsive mobile interface",
+    "Editable controlled profile interpretation before calculation",
+    "Hard education, salary, and location feasibility gates",
+    "Eight-component transparent decision scoring",
+    "Six-dimension Career Resilience Profile v1.0",
+    "Counterfactual priority scenarios and ranking-change explanations",
+    "Challenge-this-recommendation trust control",
+    "Career portfolio with primary, backup, high-upside, and fast-entry paths",
+    "Compare Lab, Skill Bridge, Degree Explorer, Location Intelligence, and Career Universe",
+    "Evidence Passports, dual confidence, data-quality monitor, vintage disclosure, and safe refusal",
+    "Guided Judge Mode and one-click demo reset"
+  ],
+  "submission_files": {
+    "readme": "README.md",
+    "architecture": "docs/architecture.svg",
+    "presentation": "docs/PRESENTATION.html",
+    "testing_report": "docs/TESTING_REPORT.md",
+    "resilience_model_card": "docs/RESILIENCE_MODEL_CARD.md",
+    "final_build_report": "docs/FINAL_98_BUILD_REPORT.md",
+    "browser_results": "docs/browser_acceptance_results.json"
+  },
+  "important_boundaries": [
+    "No occupation is claimed to be permanently AI-proof.",
+    "CareerProof resilience and fit scores are derived decision aids, not government ratings.",
+    "Official source vintages are disclosed and are not treated as one synchronized snapshot.",
+    "No synthetic labor-market records are used.",
+    "No user text is executed as arbitrary Python or unrestricted SQL."
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-07-30",
-  "product_note": "All bundled analytical records come from official U.S. government or O*NET sources. No synthetic labor-market records are used.",
+  "product_note": "All bundled labor-market and education relationship records come from official U.S. government or O*NET sources. CareerProof-derived scores are labeled and expose their formulas. No synthetic labor-market records are used.",
   "sources": [
     {
       "id": "bls-oews-national-2025",
@@ -65,6 +65,27 @@
       "local_raw_file": "Bundled verified table snapshot in data/processed/census_degree_earnings_2024.csv",
       "license": "U.S. federal government public data",
       "coverage": "National median earnings for people age 25\u201364 with earnings and a bachelor's degree or higher"
+    },
+    {
+      "id": "bea-rpp-2024",
+      "title": "Regional Price Parities by State",
+      "agency": "U.S. Bureau of Economic Analysis",
+      "vintage": "2024, released February 2026",
+      "authoritative_url": "https://www.bea.gov/data/prices-inflation/regional-price-parities-state-and-metro-area",
+      "local_raw_file": "Bundled verified state snapshot in data/processed/regional_price_parities_2024.csv",
+      "license": "U.S. federal government public data",
+      "coverage": "Relative state price levels used for transparent purchasing-power wage comparisons"
+    },
+    {
+      "id": "nces-cip-soc-2020-2018",
+      "title": "CIP 2020 to SOC 2018 Crosswalk",
+      "agency": "National Center for Education Statistics and U.S. Bureau of Labor Statistics",
+      "vintage": "CIP 2020 / SOC 2018",
+      "authoritative_url": "https://nces.ed.gov/ipeds/cipcode/post3.aspx?y=56",
+      "download_url": "https://nces.ed.gov/ipeds/cipcode/Files/CIP2020_SOC2018_Crosswalk.xlsx",
+      "local_raw_file": "data/raw/CIP2020_SOC2018_Crosswalk.xlsx",
+      "license": "U.S. federal government public data",
+      "coverage": "Qualitative links between postsecondary instructional programs and detailed occupations"
     }
   ],
   "raw_file_checksums": {
@@ -111,6 +132,10 @@
     "data/raw/state_M2025_dl.xlsx": {
       "bytes": 7675521,
       "sha256": "e9590ec791fd2941341631f84ee6445d3df931c1ad5776b80ea07c9f89fba95d"
+    },
+    "data/raw/CIP2020_SOC2018_Crosswalk.xlsx": {
+      "bytes": 428901,
+      "sha256": "ba3d59a191b9d977a5c457a66b9348c4f2f7963aafacf72c0b80113b46bf0ab8"
     }
   },
   "processed_file_checksums": {
@@ -167,6 +192,18 @@
       "bytes": 972578,
       "sha256": "3fb2a3cc5597a6a8104712fe11b3275567a27cc20f23ac5e3cbf4a3892405997",
       "rows": 4664
+    },
+    "regional_price_parities": {
+      "path": "data/processed/regional_price_parities_2024.csv",
+      "bytes": 12732,
+      "sha256": "77c819437422186f324db234079f4040b68e0c154e2650e38c8ee09e288c51d0",
+      "rows": 51
+    },
+    "degree_career_crosswalk": {
+      "path": "data/processed/degree_career_crosswalk.csv",
+      "bytes": 1767969,
+      "sha256": "6d94c811391e6bfe8385670de98815626220595d4e3ef41c66692b601e852daf",
+      "rows": 5917
     }
   }
 }

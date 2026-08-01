@@ -12,5 +12,5 @@ RUNTIME_DIR = DATA_DIR / "runtime"
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 
 APP_TITLE = "CareerProof AI"
-APP_TAGLINE = "Ask the job market. See the proof."
-APP_VERSION = "2.0.0-official-data"
+APP_TAGLINE = "Plan your future with AI. Not for AI."
+APP_VERSION = "4.0.0-resilience-intelligence"

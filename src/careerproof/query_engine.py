@@ -9,6 +9,7 @@ import pandas as pd
 from .data_store import DataStore, record_to_dict, safe_value
 from .evidence import evidence_block, evidence_id
 from .intent import IntentRouter
+from .intelligence import CareerIntelligence
 from .models import AnalysisResult, ChartSpec, Confidence
 
 
@@ -45,9 +46,11 @@ class QueryEngine:
     def __init__(self, store: DataStore) -> None:
         self.store = store
         self.router = IntentRouter()
+        self.intelligence = CareerIntelligence(store)
 
-    def answer(self, question: str, dataset: str = "auto") -> AnalysisResult:
+    def answer(self, question: str, dataset: str = "auto", context: dict[str, Any] | None = None) -> AnalysisResult:
         question = " ".join(question.strip().split())
+        question = self._apply_context(question, context)
         ai = self.router.classify(question)
         refused = self._safety_refusal(question, ai.label, ai.confidence)
         if refused is not None:
@@ -57,20 +60,90 @@ class QueryEngine:
         dataset = dataset.lower().strip() or "auto"
         route: Callable[[str, str, float], AnalysisResult] | None = None
 
-        if dataset in {"census", "degree", "census-degree"} or self._looks_like_degree_question(lowered):
+        # Route by explicit analytical intent before occupation words. This prevents
+        # phrases such as "software developers" from being mistaken for a request
+        # about software tools and prevents "what does a lawyer earn" from becoming
+        # a task query.
+        forced = dataset not in {"", "auto"}
+        if dataset in {"census", "degree", "census-degree"} or (not forced and self._looks_like_degree_question(lowered)):
             route = self._degree_analysis
-        elif dataset in {"education", "education-wages"} or self._looks_like_education_aggregate(lowered):
+        elif dataset in {"education", "education-wages"} or (not forced and self._looks_like_education_aggregate(lowered)):
             route = self._education_wage_analysis
-        elif dataset in {"onet", "skills"} or any(word in lowered for word in ["skills", "knowledge", "tasks", "duties", "software", "tools", "what does"]):
-            route = self._onet_analysis
-        elif dataset in {"state", "bls-state"} or self._looks_like_state_question(question):
+        elif dataset in {"cost-of-living", "rpp", "bea"} or (not forced and self._looks_like_cost_of_living(lowered)):
+            route = self._cost_of_living_analysis
+        elif dataset in {"state", "bls-state"} or (not forced and self._looks_like_state_question(question)):
             route = self._state_analysis
-        elif dataset in {"projections", "growth"} or any(word in lowered for word in ["projected", "projection", "outlook", "grow", "growth", "2034", "openings"]):
+        elif dataset in {"projections", "growth"} or (not forced and self._looks_like_projection_question(lowered)):
             route = self._projection_analysis
+        elif dataset in {"onet", "skills"} or (not forced and self._looks_like_onet_question(lowered)):
+            route = self._onet_analysis
         else:
             route = self._national_analysis
 
         return route(question, ai.label, ai.confidence)
+
+    def _apply_context(self, question: str, context: dict[str, Any] | None) -> str:
+        if not context:
+            return question
+        lowered = question.lower()
+        pronoun_terms = ("those", "them", "that occupation", "that career", "it", "same career")
+        if not any(term in lowered for term in pronoun_terms):
+            return question
+        titles: list[str] = []
+        for code in context.get("soc_codes", [])[:2]:
+            row = self.store.occupation_by_code(str(code))
+            if row:
+                titles.append(str(row["occupation_title"]))
+        if not titles:
+            return question
+        return f"{question} Context occupations: {' and '.join(titles)}."
+
+    @staticmethod
+    def _looks_like_projection_question(lowered: str) -> bool:
+        return any(term in lowered for term in [
+            "projected", "projection", "outlook", "grow", "growth", "2034", "openings",
+            "typical education", "education required", "education is required", "entry education",
+        ])
+
+    @staticmethod
+    def _looks_like_onet_question(lowered: str) -> bool:
+        skills = any(term in lowered for term in ["skills", "skill needed", "skill required"])
+        knowledge = any(term in lowered for term in ["knowledge areas", "knowledge needed", "what knowledge"])
+        task_question = (lowered.startswith("what does ") or lowered.startswith("what do ")) and lowered.rstrip(" ?").endswith(" do")
+        tasks = task_question or any(term in lowered for term in ["tasks", "duties", "day to day", "daily work", "what do they do", "what does the job do"])
+        tools = any(term in lowered for term in [
+            "software used", "software do", "software does", "what software", "tools used", "what tools",
+            "technology used", "what technology", "technologies used",
+        ])
+        return skills or knowledge or tasks or tools
+
+    @staticmethod
+    def _looks_like_cost_of_living(lowered: str) -> bool:
+        return any(term in lowered for term in [
+            "cost of living", "purchasing power", "salary go furthest", "pay goes furthest",
+            "adjusted salary", "adjusted for prices", "regional price parity",
+        ])
+
+    def _derive_decision_confidence(self, status: str, rows: list[dict[str, Any]], evidence: dict[str, Any]) -> Confidence:
+        if status != "supported":
+            return Confidence(label="Insufficient evidence", score=0, reason="No supported decision result was calculated.")
+        employment_values: list[float] = []
+        for row in rows:
+            for key in ("employment", "employment_2025", "employment_2024"):
+                value = row.get(key)
+                if isinstance(value, (int, float)) and not math.isnan(float(value)):
+                    employment_values.append(float(value))
+        if employment_values:
+            market = max(employment_values)
+            if market < 500:
+                return Confidence(label="Low", score=48, reason="The leading published estimate represents a small labor market; use the ranking cautiously.")
+            if market < 5000:
+                return Confidence(label="Medium", score=72, reason="The result is supported, but the occupation or geography has a specialized employment base.")
+            return Confidence(label="High", score=88, reason="The result has a substantial published employment base and reproducible calculation.")
+        rows_used = int(evidence.get("rows_considered", 0) or 0)
+        if rows_used >= 30:
+            return Confidence(label="High", score=86, reason="The comparison uses broad published coverage and a reproducible calculation.")
+        return Confidence(label="Medium", score=70, reason="The source is authoritative, but practical interpretation depends on variables not present in the dataset.")
 
     def _base_result(
         self,
@@ -90,6 +163,7 @@ class QueryEngine:
         evidence: dict[str, Any],
         confidence: Confidence,
         source_ids: list[str],
+        decision_confidence: Confidence | None = None,
         limitations: list[str] | None = None,
         suggestions: list[str] | None = None,
         profile: dict[str, Any] | None = None,
@@ -118,6 +192,7 @@ class QueryEngine:
             query_plan=query_plan,
             evidence=evidence,
             confidence=confidence,
+            decision_confidence=decision_confidence or self._derive_decision_confidence(status, rows, evidence),
             sources=[self.store.source(source_id) for source_id in source_ids],
             limitations=limitations or [],
             suggestions=suggestions or [],
@@ -134,7 +209,7 @@ class QueryEngine:
             (["guarantee", "definitely get hired", "will get hired", "predict my hiring"],
              "Official labor statistics describe groups and occupations. They cannot guarantee an individual hiring outcome.",
              ["Which occupations have the most annual openings?", "What skills does O*NET list for the occupation?"]),
-            (["live jobs", "jobs hiring now", "current openings near me", "apply for"],
+            (["live jobs", "live open jobs", "open jobs", "open positions", "jobs hiring now", "hiring today", "vacancies today", "current openings near me", "apply for"],
              "CareerProof uses official statistical datasets, not live job-board listings or application systems.",
              ["Which occupations have the most annual openings?", "Which states have the most employment for this occupation?"]),
             (["race", "ethnicity", "gender most likely", "protected characteristic"],
@@ -463,6 +538,57 @@ class QueryEngine:
             limitations=["States with suppressed estimates cannot appear in the ranking. Cost of living is not included."],
         )
 
+    def _cost_of_living_analysis(self, question: str, ai_intent: str, ai_confidence: float) -> AnalysisResult:
+        matches = self._occupation_matches(question, limit=1)
+        if not matches:
+            return self._clarify(
+                question,
+                "Name an occupation to compare state wages after a BEA regional price adjustment.",
+                ["Where does an electrical engineer salary go furthest after cost of living?", "Which states offer the strongest purchasing power for registered nurses?"],
+                ai_intent,
+                ai_confidence,
+            )
+        result = self.intelligence.state_opportunity(matches[0]["soc_code"])
+        rows = result["results"][:limit_from_question(question, default=10)]
+        return self._base_result(
+            status="supported",
+            question=question,
+            dataset="BLS OEWS State + BEA RPP",
+            intent="purchasing_power_state_ranking",
+            ai_intent=ai_intent,
+            ai_confidence=ai_confidence,
+            headline=result["headline"],
+            summary=result["summary"],
+            rows=rows,
+            columns=[
+                {"key": "state", "label": "State"},
+                {"key": "nominal_median_wage", "label": "Nominal median wage", "format": "currency"},
+                {"key": "purchasing_power_wage", "label": "Purchasing-power wage", "format": "currency"},
+                {"key": "regional_price_parity", "label": "BEA price level", "format": "decimal"},
+                {"key": "employment", "label": "Employment", "format": "number"},
+                {"key": "opportunity_score", "label": "CareerProof opportunity score", "format": "decimal"},
+            ],
+            chart=ChartSpec(type="bar", title="Purchasing-power-adjusted state wage ranking", label_key="state", value_key="purchasing_power_wage", value_format="currency"),
+            query_plan={
+                "datasets": ["BLS OEWS May 2025 state", "BEA Regional Price Parities 2024"],
+                "soc_code": matches[0]["soc_code"],
+                "calculation": "nominal median wage * 100 / regional price parity",
+                "ranking": "CareerProof opportunity score",
+            },
+            evidence=evidence_block(
+                calculation=result["formula"],
+                filters=[f"SOC = {matches[0]['soc_code']}", "published state median wage", "published 2024 state RPP"],
+                rows_considered=len(result["results"]),
+                rows_returned=len(rows),
+                data_quality_notes=["The combined opportunity score is CareerProof-derived and every component is displayed."],
+            ),
+            confidence=Confidence(**result["source_confidence"]),
+            decision_confidence=Confidence(**result["decision_confidence"]),
+            source_ids=["bls-oews-state-2025", "bea-rpp-2024"],
+            limitations=result["limitations"],
+            suggestions=[f"Show the official state wage ranking for {matches[0]['occupation_title'].lower()}.", f"Compare {matches[0]['occupation_title'].lower()} with another career."],
+        )
+
     def _onet_analysis(self, question: str, ai_intent: str, ai_confidence: float) -> AnalysisResult:
         lowered = question.lower()
         matches = self._occupation_matches(question, limit=1)
@@ -496,7 +622,7 @@ class QueryEngine:
             summary = "Importance uses O*NET's occupation-level rating scale. Higher values indicate greater reported importance."
             columns = [{"key": "knowledge_area", "label": "Knowledge area"}, {"key": "importance", "label": "Importance", "format": "decimal"}]
             chart = ChartSpec(type="bar", title="Knowledge importance", label_key=label_key, value_key=value_key, value_format=chart_format)
-        elif "task" in lowered or "duties" in lowered or "what does" in lowered or "daily work" in lowered:
+        elif "task" in lowered or "duties" in lowered or "daily work" in lowered or (((lowered.startswith("what does ") or lowered.startswith("what do ")) and lowered.rstrip(" ?").endswith(" do"))):
             source_frame = self.store.tasks.loc[self.store.tasks["soc_code"].eq(soc)].head(10)
             rows = [{"task": row.task, "task_type": row.task_type, "rank": int(row.rank)} for row in source_frame.itertuples()]
             intent, label_key, value_key = "tasks", "task", "rank"

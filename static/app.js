@@ -1,169 +1,1769 @@
-const state = { bootstrap: null, currentResult: null, currentWorkspace: 'ask' };
-const $ = (selector, root=document) => root.querySelector(selector);
-const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
+/* CareerProof AI 4.0
+ * AI interprets. Code calculates. Evidence verifies. You decide.
+ */
 
-function escapeHTML(value='') {
-  return String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-}
-function formatValue(value, format='') {
-  if (value === null || value === undefined || value === '' || Number.isNaN(value)) return 'Not published';
-  if (format === 'currency') return new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(value));
-  if (format === 'number') return new Intl.NumberFormat('en-US', {maximumFractionDigits:0}).format(Number(value));
-  if (format === 'percent') return `${Number(value).toFixed(1)}%`;
-  if (format === 'decimal') return Number(value).toFixed(2);
-  return String(value);
-}
-function compactNumber(value) {
-  if (value === null || value === undefined) return '—';
-  return new Intl.NumberFormat('en-US',{notation:'compact',maximumFractionDigits:1}).format(Number(value));
-}
-function toast(message) {
-  const el = $('#toast'); el.textContent = message; el.classList.add('show');
-  clearTimeout(toast.timer); toast.timer = setTimeout(()=>el.classList.remove('show'),2200);
-}
-function navigate(workspace) {
-  state.currentWorkspace = workspace;
-  $$('.workspace').forEach(el => el.classList.toggle('active', el.id === `workspace-${workspace}`));
-  $$('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.workspace === workspace));
-  const button = $(`.nav-item[data-workspace="${workspace}"]`);
-  $('#workspaceLabel').textContent = button ? button.textContent.trim() : workspace;
-  $('.sidebar').classList.remove('open'); window.scrollTo({top:0,behavior:'smooth'});
-}
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const SVG_NS = "http://www.w3.org/2000/svg";
 
-async function loadBootstrap() {
-  const response = await fetch('/api/bootstrap');
-  if (!response.ok) throw new Error('Could not load official data catalog.');
-  state.bootstrap = await response.json();
-  renderStats(); renderQuickQuestions(); renderFeatured(); renderQuestionLibrary(); renderSources();
-}
-function renderStats() {
-  const s = state.bootstrap.stats;
-  const items = [
-    ['Detailed occupations', s.occupations.toLocaleString(), 'BLS national', 'blue'],
-    ['State occupation rows', compactNumber(s.state_occupation_rows), `${s.states_and_districts} areas`, 'green'],
-    ['Official sources', s.official_sources, 'BLS · Census · O*NET', 'blue'],
-    ['Degree field groups', s.degree_field_groups, s.census_vintage, 'green'],
-    ['Wage vintage', s.latest_wage_vintage, 'OEWS', 'blue'],
-    ['Projection window', s.projection_window, 'BLS', 'green'],
-  ];
-  $('#statsGrid').innerHTML = items.map(([label,value,note,color]) => `<div class="stat-card ${color}"><small>${escapeHTML(label)}</small><strong>${escapeHTML(value)}</strong><span>${escapeHTML(note)}</span></div>`).join('');
-}
-function renderQuickQuestions() {
-  const examples = [
-    'Which states pay nuclear engineers the most?',
-    'What skills do public relations specialists need?',
-    "Which broad bachelor's degree fields have the highest median earnings?",
-    'What is the job outlook for political scientists?',
-  ];
-  $('#quickQuestions').innerHTML = examples.map(q=>`<button class="question-chip" data-question="${escapeHTML(q)}">${escapeHTML(q)}</button>`).join('');
-}
-function renderFeatured() {
-  $('#featuredGrid').innerHTML = state.bootstrap.featured_occupations.map(item=>`
-    <button class="featured-card" data-soc="${item.soc_code}">
-      <small>${item.soc_code}</small><h3>${escapeHTML(item.occupation_title)}</h3>
-      <div class="featured-metrics"><span>Median wage<strong>${formatValue(item.annual_median_wage_2025,'currency')}</strong></span><span>Growth 2024–34<strong>${formatValue(item.employment_change_percent_2024_2034,'percent')}</strong></span></div>
-    </button>`).join('');
-}
-function renderQuestionLibrary() {
-  $('#questionLibrary').innerHTML = state.bootstrap.question_catalog.map((group,index)=>`
-    <section class="question-group card"><div class="question-group-head"><div class="dataset-logo">${index<3?'BLS':index===3?'O*N':index===4?'ACS':'BLS'}</div><div><h2>${escapeHTML(group.dataset)}</h2><p>${escapeHTML(group.description)}</p></div></div>
-    <div class="question-items">${group.questions.map(q=>`<button class="library-question" data-question="${escapeHTML(q)}"><span>${escapeHTML(q)}</span><span>→</span></button>`).join('')}</div></section>`).join('');
-}
-function renderSources() {
-  const sources = state.bootstrap.catalog.sources;
-  $('#sourceCatalog').innerHTML = sources.map(source=>`
-    <article class="source-card card"><div class="source-meta"><span class="meta-pill">${escapeHTML(source.agency.includes('Census')?'Census':source.agency.includes('O*NET')?'O*NET':'BLS')}</span><span class="meta-pill">${escapeHTML(source.vintage)}</span></div>
-    <h2>${escapeHTML(source.title)}</h2><p>${escapeHTML(source.coverage)}</p>
-    <div class="source-details"><div><strong>Agency</strong>${escapeHTML(source.agency)}</div><div><strong>Terms</strong>${escapeHTML(source.license)}</div></div>
-    <p><a href="${escapeHTML(source.authoritative_url)}" target="_blank" rel="noreferrer">Open authoritative source ↗</a></p></article>`).join('');
-}
+const WEIGHT_META = {
+  interest_fit: { label: "Interest and skill fit", hint: "Controlled retrieval plus explicit intent signals" },
+  resilience: { label: "AI resilience", hint: "Transparent human and real-world advantage profile" },
+  salary: { label: "Salary", hint: "Published BLS national median wage" },
+  growth: { label: "Projected growth", hint: "BLS 2024–2034 projection" },
+  openings: { label: "Annual openings", hint: "BLS projected average openings" },
+  education: { label: "Entry burden", hint: "Education ceiling plus related experience" },
+  location: { label: "Location fit", hint: "Published state coverage, pay, and employment" },
+  stability: { label: "Market stability", hint: "Employment size, openings, and state breadth" },
+};
 
-async function analyzeQuestion(question, dataset='auto') {
-  question = question.trim(); if (!question) return;
-  navigate('ask'); $('#questionInput').value = question; $('#datasetSelect').value = dataset;
-  $('#resultArea').innerHTML = `<div class="loading-card card"><div class="spinner"></div><div><strong>Building a verified query</strong><p>Routing to the official dataset and calculating the answer...</p></div></div>`;
+const DEFAULT_PATH_WEIGHTS = { interest_fit: 22, resilience: 23, salary: 18, growth: 10, openings: 9, education: 8, location: 5, stability: 5 };
+const DEFAULT_COMPARE_WEIGHTS = { interest_fit: 12, resilience: 25, salary: 20, growth: 10, openings: 10, education: 8, location: 8, stability: 7 };
+const DEMO_COMPARE_WEIGHTS = { interest_fit: 12, resilience: 30, salary: 22, growth: 8, openings: 8, education: 10, location: 5, stability: 5 };
+const WORKSPACE_TITLES = {
+  home: "Home", universe: "Career Universe", path: "Build My Path", compare: "Compare Lab",
+  bridge: "Skills Bridge", degrees: "Degree Explorer", location: "Location Intelligence",
+  saved: "Saved Plans", trust: "Evidence Center", ask: "Ask CareerProof", occupations: "Occupation Explorer",
+};
+
+const safeStorage = (() => {
+  const memory = new Map();
   try {
-    const response = await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,dataset})});
-    if (!response.ok) throw new Error((await response.json()).detail || 'Analysis failed.');
-    state.currentResult = await response.json(); renderResult(state.currentResult);
-  } catch (error) {
-    $('#resultArea').innerHTML = `<div class="empty-state card"><div class="empty-icon">!</div><div><h3>Analysis could not be completed</h3><p>${escapeHTML(error.message)}</p></div></div>`;
+    const storage = window.localStorage;
+    const testKey = "__careerproof_storage_test__";
+    storage.setItem(testKey, "1");
+    storage.removeItem(testKey);
+    return storage;
+  } catch {
+    return {
+      getItem: (key) => memory.has(String(key)) ? memory.get(String(key)) : null,
+      setItem: (key, value) => memory.set(String(key), String(value)),
+      removeItem: (key) => memory.delete(String(key)),
+      clear: () => memory.clear(),
+      key: (index) => [...memory.keys()][index] ?? null,
+      get length() { return memory.size; },
+    };
+  }
+})();
+
+const state = {
+  bootstrap: null,
+  home: null,
+  universe: null,
+  activeWorkspace: "home",
+  selectedInterests: new Set(["Electronics", "Programming", "Law"]),
+  skills: ["Python", "Arduino", "Writing"],
+  workEnvironment: new Set(["Hands-on", "Office or analytical", "People-facing"]),
+  pathWeights: { ...DEFAULT_PATH_WEIGHTS },
+  compareWeights: { ...DEFAULT_COMPARE_WEIGHTS },
+  compareValues: ["Electrical Engineers", "Nuclear Engineers", "Lawyers", ""],
+  compareResolved: [null, null, null, null],
+  comparisonTray: new Map(),
+  saved: loadJSON("careerproof-saved", []),
+  decisionNotes: safeStorage.getItem("careerproof-decision-notes") || "",
+  lastPath: loadJSON("careerproof-last-path", null),
+  lastInterpretation: null,
+  lastCompare: null,
+  lastOccupation: null,
+  occupationCache: new Map(),
+  universeCategory: null,
+  universeCategoryData: null,
+  judgeData: null,
+  judgeStep: 0,
+  trustLoaded: { model: false, quality: false, diagnostic: false },
+  toastTimer: null,
+};
+
+function loadJSON(key, fallback) {
+  try {
+    const value = safeStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
   }
 }
-function confidenceMarkup(conf) {
-  return `<div class="confidence-box"><small>Evidence confidence</small><div class="confidence-score"><strong>${conf.score}</strong><span>/100 · ${escapeHTML(conf.label)}</span></div><p>${escapeHTML(conf.reason)}</p></div>`;
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
-function chartMarkup(result) {
-  const spec = result.chart || {};
-  if (!spec.label_key || !spec.value_key || !result.rows.some(row=>row[spec.value_key] !== null && row[spec.value_key] !== undefined)) return '';
-  const values = result.rows.map(row=>Number(row[spec.value_key])||0);
-  const max = Math.max(...values.map(Math.abs),1);
-  return `<div class="chart-card"><h3>${escapeHTML(spec.title || 'Result chart')}</h3><div class="bar-chart">${result.rows.slice(0,15).map(row=>{
-    const v = Number(row[spec.value_key])||0; const width = Math.max(2,Math.abs(v)/max*100);
-    return `<div class="bar-row"><div class="bar-label" title="${escapeHTML(row[spec.label_key])}">${escapeHTML(row[spec.label_key])}</div><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="bar-value">${formatValue(row[spec.value_key],spec.value_format)}</div></div>`;
-  }).join('')}</div></div>`;
+
+function compactNumber(value, decimals = 1) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Not published";
+  const number = Number(value);
+  if (Math.abs(number) >= 1_000_000) return `${(number / 1_000_000).toFixed(decimals).replace(/\.0$/, "")}M`;
+  if (Math.abs(number) >= 1_000) return `${(number / 1_000).toFixed(decimals).replace(/\.0$/, "")}K`;
+  return Math.round(number).toLocaleString();
 }
-function tableMarkup(result) {
-  if (!result.rows.length || !result.columns.length) return '';
-  return `<div class="table-card"><h3>Source-backed result table</h3><table class="data-table"><thead><tr>${result.columns.map(c=>`<th>${escapeHTML(c.label)}</th>`).join('')}</tr></thead><tbody>${result.rows.map(row=>`<tr>${result.columns.map(c=>`<td>${escapeHTML(formatValue(row[c.key],c.format))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+
+function formatNumber(value, decimals = 0) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Not published";
+  return Number(value).toLocaleString(undefined, { maximumFractionDigits: decimals });
 }
-function renderResult(result) {
-  if (result.status !== 'supported') {
-    $('#resultArea').innerHTML = `<article class="result-card card"><div class="result-top"><div><div class="result-status refused">Safe refusal</div><h2 class="result-title">${escapeHTML(result.headline)}</h2><p class="result-summary">${escapeHTML(result.summary)}</p></div>${confidenceMarkup(result.confidence)}</div>
-      <div class="refusal-body"><h3>Closest answerable questions</h3><div class="suggestion-list">${result.suggestions.map(q=>`<button class="suggestion-button" data-question="${escapeHTML(q)}">→ ${escapeHTML(q)}</button>`).join('')}</div></div></article>`;
+
+function money(value, compact = false) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Not published";
+  if (compact) return `$${compactNumber(value, 0)}`;
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(value));
+}
+
+function pct(value, decimals = 1) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return "Not published";
+  const number = Number(value);
+  return `${number > 0 ? "+" : ""}${number.toFixed(decimals)}%`;
+}
+
+function slug(value) {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function titleCase(value) {
+  return String(value ?? "").replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+
+function debounce(fn, delay = 250) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
+async function api(url, options = {}) {
+  const config = { ...options, headers: { "Content-Type": "application/json", ...(options.headers || {}) } };
+  const response = await fetch(url, config);
+  let payload;
+  try { payload = await response.json(); } catch { payload = null; }
+  if (!response.ok) {
+    const message = payload?.detail || payload?.message || `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+  return payload;
+}
+
+function showToast(message) {
+  const toast = $("#toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+}
+
+function setButtonLoading(button, loading, label = "Working…") {
+  if (!button) return;
+  if (loading) {
+    button.dataset.original = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = `<span class="spinner" style="width:16px;height:16px"></span><span>${escapeHTML(label)}</span>`;
+  } else {
+    button.disabled = false;
+    if (button.dataset.original) button.innerHTML = button.dataset.original;
+  }
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
+function normalizeWeights(weights) {
+  const clean = {};
+  let total = 0;
+  Object.keys(WEIGHT_META).forEach((key) => {
+    clean[key] = Math.max(0, Number(weights[key] || 0));
+    total += clean[key];
+  });
+  if (total <= 0) return { ...DEFAULT_PATH_WEIGHTS };
+  const normalized = {};
+  Object.entries(clean).forEach(([key, value]) => { normalized[key] = Number((value / total * 100).toFixed(1)); });
+  return normalized;
+}
+
+const CATEGORY_COLORS = {
+  blue: "#4d72ff", violet: "#9b53ff", gold: "#e9b44c", cyan: "#22b8e7",
+  green: "#19b97c", teal: "#19b3ad", indigo: "#7165f1", orange: "#eb8d45",
+};
+
+function normalizeStatsPayload(raw = {}) {
+  return {
+    ...raw,
+    occupations: Number(raw.occupations || 0),
+    state_occupation_records: Number(raw.state_occupation_records ?? raw.state_occupation_rows ?? 0),
+    degree_relationships: Number(raw.degree_relationships ?? raw.degree_occupation_links ?? 0),
+    source_families: Number(raw.source_families ?? raw.official_sources ?? 0),
+  };
+}
+
+function normalizeSourcePayload(source = {}) {
+  return {
+    ...source,
+    name: source.name || source.title || source.dataset_name || source.id,
+    description: source.description || source.coverage || source.use || "Official source snapshot used by CareerProof.",
+    publication_date: source.publication_date || source.vintage || source.as_of,
+    year: source.year || source.vintage,
+    url: source.url || source.authoritative_url || source.public_url,
+    direct: source.direct !== false,
+  };
+}
+
+function normalizeInterpretationPayload(raw = {}) {
+  const profile = raw.normalized_profile || raw.profile || {};
+  return {
+    ...raw,
+    interpretation_summary: raw.interpretation_summary || raw.goal || "CareerProof converted your inputs into an editable decision profile.",
+    constraints: (raw.constraints || []).map((item) => ({ ...item, hard: item.hard ?? String(item.strength || "").toLowerCase() === "hard" })),
+    priorities: raw.priorities || [],
+    assumptions: raw.assumptions || [],
+    warnings: raw.warnings || [],
+    remote_preference: raw.remote_preference || profile.remote_preference || "Flexible",
+    willing_to_relocate: raw.willing_to_relocate ?? profile.willing_to_relocate ?? true,
+    normalized_profile: profile,
+  };
+}
+
+function normalizeTaskImpactPayload(raw = {}) {
+  if (raw.ai_task_impact) return raw.ai_task_impact;
+  const taskImpact = raw.task_impact || raw;
+  const group = (tasks = []) => ({ count: tasks.length, tasks });
+  return {
+    human_led: group(taskImpact.human_led || []),
+    ai_augmented: group(taskImpact.augmented || taskImpact.ai_augmented || []),
+    routine_reduced: group(taskImpact.reduced || taskImpact.routine_reduced || []),
+    method: taskImpact.method || "Transparent classification of official O*NET task statements.",
+  };
+}
+
+function normalizeResiliencePayload(raw = {}) {
+  if (!raw || !Object.keys(raw).length) return { overall_score: 0, overall_label: "Not available", dimensions: {}, ai_augmentation_potential: 0, ai_task_impact: normalizeTaskImpactPayload({}) };
+  const dimensionsArray = Array.isArray(raw.dimensions) ? raw.dimensions : Object.values(raw.dimensions || {});
+  const dimensions = {};
+  dimensionsArray.forEach((dimension) => { if (dimension?.key || dimension?.label) dimensions[dimension.key || slug(dimension.label)] = dimension; });
+  const augmentation = typeof raw.ai_augmentation_potential === "object" ? raw.ai_augmentation_potential.score : raw.ai_augmentation_potential;
+  return {
+    ...raw,
+    overall_score: Number(raw.overall_score ?? raw.score ?? 0),
+    overall_label: raw.overall_label || raw.label || "Review",
+    dimensions,
+    ai_augmentation_potential: Number(augmentation || 0),
+    ai_task_impact: normalizeTaskImpactPayload(raw),
+  };
+}
+
+function normalizeRoadmapPayload(raw = {}) {
+  if (raw.learn || raw.build || raw.prepare) return raw;
+  const learn = [], build = [], prepare = [];
+  (raw.actions || []).forEach((action) => {
+    const normalized = { title: action.title || action.label || titleCase(action.type), detail: action.detail || "" };
+    if (["skill", "tool", "software"].includes(action.type)) learn.push(normalized);
+    else if (["project", "portfolio", "build"].includes(action.type)) build.push(normalized);
+    else prepare.push(normalized);
+  });
+  if (!build.length) build.push({ title: "Create a documented proof-of-skill project", detail: "Turn one target skill into a portfolio artifact that an advisor or employer can inspect." });
+  return { ...raw, learn, build, prepare, boundary: raw.boundary || "Example actions are planning prompts, not guaranteed requirements." };
+}
+
+function normalizeChallengePayload(raw = {}) {
+  if (!raw || !Object.keys(raw).length) return {};
+  const weakest = Array.isArray(raw.weakest_evidence)
+    ? raw.weakest_evidence.map((item) => `${titleCase(item.component)} ${Number(item.score).toFixed(1)}/100`).join(" · ")
+    : raw.weakest_evidence;
+  let challenger = raw.strongest_challenger;
+  if (!challenger && raw.strongest_alternative) {
+    const title = String(raw.strongest_alternative).split(" is the strongest challenger")[0];
+    challenger = { occupation_title: title, why_it_could_win: raw.strongest_alternative };
+  }
+  return {
+    ...raw,
+    weakest_evidence: weakest || "No core source field is missing, but occupation data cannot describe a specific employer or person.",
+    missing_information: raw.missing_information || raw.missing_or_limited_evidence || [],
+    strongest_challenger: challenger || null,
+  };
+}
+
+function normalizeCareerPayload(raw = {}) {
+  const stateDetail = raw.state_match || raw.preferred_state_detail;
+  const resilience = normalizeResiliencePayload(raw.resilience_profile || {
+    overall_score: raw.resilience_score,
+    label: raw.resilience_label,
+  });
+  return {
+    ...raw,
+    soc_code: raw.soc_code || raw.code,
+    occupation_title: raw.occupation_title || raw.title || raw.occupation,
+    median_wage: raw.median_wage ?? raw.annual_median_wage_2025 ?? raw.median_annual_wage,
+    wage_p10: raw.wage_p10 ?? raw.annual_wage_p10_2025,
+    wage_p90: raw.wage_p90 ?? raw.annual_wage_p90_2025,
+    growth_percent: raw.growth_percent ?? raw.employment_change_percent_2024_2034 ?? raw.growth_2024_2034,
+    annual_openings: raw.annual_openings ?? ((raw.annual_openings_2024_2034_thousands || 0) * 1000),
+    education: raw.education || raw.typical_entry_education,
+    score: Number(raw.score ?? raw.careerproof_score ?? 0),
+    components: raw.components || raw.score_components || {},
+    contributions: raw.contributions || raw.weighted_contributions || {},
+    why: raw.why || raw.reasons || [],
+    state_match: stateDetail ? {
+      ...stateDetail,
+      median_wage: stateDetail.median_wage ?? stateDetail.nominal_median_wage,
+    } : null,
+    resilience_profile: resilience,
+    resilience_label: raw.resilience_label || resilience.overall_label,
+    resilience_score: Number(raw.resilience_score ?? resilience.overall_score ?? 0),
+    roadmap: normalizeRoadmapPayload(raw.roadmap || {}),
+    challenge: normalizeChallengePayload(raw.challenge || {}),
+  };
+}
+
+function normalizeSensitivityPayload(raw = []) {
+  return (raw || []).map((scenario) => ({
+    ...scenario,
+    top_occupation: scenario.top_occupation || scenario.top_career?.occupation_title,
+    top_score: Number(scenario.top_score ?? scenario.top_career?.score ?? 0),
+  }));
+}
+
+function normalizePathPayload(raw = {}) {
+  const normalizeGroup = (items) => (items || []).map(normalizeCareerPayload);
+  const groups = {};
+  Object.entries(raw.result_groups || {}).forEach(([key, items]) => { groups[key] = normalizeGroup(items); });
+  const portfolio = {};
+  Object.entries(raw.portfolio || {}).forEach(([key, value]) => { portfolio[key] = value && typeof value === "object" && value.soc_code ? normalizeCareerPayload(value) : value; });
+  return {
+    ...raw,
+    interpretation: normalizeInterpretationPayload(raw.interpretation || raw.interpreted_request || {}),
+    results: normalizeGroup(raw.results),
+    result_groups: groups,
+    portfolio,
+    sensitivity: normalizeSensitivityPayload(raw.sensitivity),
+    what_would_change_recommendation: (raw.what_would_change_recommendation || raw.what_would_change_the_recommendation || []).map((item) => ({
+      ...item,
+      condition: item.condition || item.scenario,
+      impact: item.impact || item.explanation,
+    })),
+    ranking_explanation: raw.ranking_explanation ? { ...raw.ranking_explanation, top_reason: raw.ranking_explanation.top_reason || raw.ranking_explanation.plain_language } : null,
+    freshness: { ...(raw.freshness || raw.data_freshness || {}), summary: raw.freshness?.summary || raw.data_freshness?.message || raw.data_freshness?.headline },
+    disclosure: raw.disclosure || raw.summary,
+  };
+}
+
+function normalizeComparePayload(raw = {}) {
+  return {
+    ...raw,
+    results: (raw.results || []).map(normalizeCareerPayload),
+    sensitivity: normalizeSensitivityPayload(raw.sensitivity),
+    freshness: { ...(raw.freshness || raw.data_freshness || {}), summary: raw.freshness?.summary || raw.data_freshness?.message },
+  };
+}
+
+function normalizeBridgePayload(raw = {}) {
+  return {
+    ...raw,
+    source: normalizeCareerPayload(raw.source || {}),
+    target: normalizeCareerPayload(raw.target || {}),
+    overall_overlap: Number(raw.overall_overlap ?? raw.overlap_score ?? 0),
+    task_similarity: Number(raw.task_similarity ?? raw.component_scores?.task_similarity ?? 0),
+    technology_overlap: Number(raw.technology_overlap ?? raw.component_scores?.software_overlap ?? 0),
+    shared_skills: (raw.shared_skills || []).map((item) => ({
+      ...item,
+      skill_name: item.skill_name || item.skill,
+      shared_score: Number(item.shared_score ?? Math.min(item.source_importance || 0, item.target_importance || 0)),
+    })),
+    skill_gaps: (raw.skill_gaps || raw.skills_to_build || []).map((item) => ({ ...item, skill_name: item.skill_name || item.skill })),
+    pathway: raw.pathway || (raw.next_steps || []).map((step, index) => ({ step: index + 1, title: `Transition step ${index + 1}`, detail: step })),
+    boundary: raw.boundary || raw.decision_confidence?.reason || "This is an occupational-profile comparison, not a guarantee of transition readiness or employment.",
+  };
+}
+
+function normalizeUniversePayload(raw = {}) {
+  const categories = (raw.categories || []).map((category) => ({
+    ...category,
+    name: category.name || category.label,
+    color: category.color || CATEGORY_COLORS[category.accent] || "#5475ff",
+    size: Number(category.size ?? category.occupation_count ?? 0),
+  }));
+  return { ...raw, categories, occupation_count: raw.occupation_count || categories.reduce((sum, item) => sum + item.size, 0) };
+}
+
+function normalizeUniverseCategoryPayload(raw = {}) {
+  const normalized = normalizeUniversePayload(raw);
+  const category = normalized.categories[0] || {};
+  return {
+    ...raw,
+    name: category.name || "Career field",
+    color: category.color || "#5475ff",
+    description: `Explore ${formatNumber(category.size || 0)} occupations connected through official SOC categories and work-profile evidence.`,
+    occupations: (raw.nodes || raw.occupations || []).map(normalizeCareerPayload),
+  };
+}
+
+function normalizeHomePayload(raw = {}) {
+  const path = normalizePathPayload(raw.path || {});
+  const impact = raw.impact || {};
+  return {
+    ...raw,
+    path,
+    top_matches: (raw.top_matches || path.results || []).map(normalizeCareerPayload),
+    impact: {
+      ...impact,
+      ai_task_impact: normalizeTaskImpactPayload({ task_impact: {
+        human_led: impact.human_led_examples || [], augmented: impact.augmented_examples || [], reduced: impact.reduced_examples || [], method: impact.boundary,
+      } }),
+    },
+    local_opportunities: raw.local_opportunities || [],
+    stats: normalizeStatsPayload(raw.stats),
+    freshness: { ...(raw.freshness || raw.data_freshness || {}), summary: raw.freshness?.summary || raw.data_freshness?.message },
+  };
+}
+
+function normalizeOccupationPayload(raw = {}) {
+  if (raw.profile) return raw;
+  const occupation = raw.occupation || {};
+  const profile = normalizeCareerPayload({
+    ...occupation,
+    category: raw.category,
+    resilience_profile: raw.resilience_profile,
+  });
+  const coverageComponents = raw.coverage?.components || {};
+  const years = { national_wage: "May 2025", projection: "2024–2034", skills: "O*NET 30.3", tasks: "O*NET 30.3", education: "2024–2034", states: "May 2025", degrees: "CIP 2020 / SOC 2018" };
+  const locationRows = (raw.opportunity_states || []).map((row) => ({
+    ...row,
+    label: row.state,
+    display_value: money(row.purchasing_power_wage || row.nominal_median_wage),
+  }));
+  return {
+    ...raw,
+    profile,
+    resilience_profile: normalizeResiliencePayload(raw.resilience_profile),
+    skills: (raw.skills || []).map((item) => ({ ...item, skill_name: item.skill_name || item.skill })),
+    technologies: (raw.software || []).map((item) => ({ ...item, commodity_title: item.commodity_title || item.software_or_tool || item.software })),
+    tasks: (raw.tasks || []).map((item) => ({ ...item, task_description: item.task_description || item.task })),
+    data_coverage: {
+      percent: raw.coverage?.score || 0,
+      components: Object.fromEntries(Object.entries(coverageComponents).map(([key, available]) => [key, { available: Boolean(available), year: years[key] || "Published snapshot" }])),
+    },
+    location_opportunity: {
+      rows: locationRows,
+      formula: "Opportunity score = 40% purchasing-power wage percentile + 30% employment percentile + 20% location-quotient percentile + 10% inverse employment-estimate RSE.",
+    },
+    source_lineage: (raw.data_lineage || []).map((item) => ({ dataset: item.source, value: item.provides, year: "See source catalog", direct: true })),
+    data_freshness: { summary: "Wages use May 2025 data, projections use 2024–2034, and O*NET work content uses release 30.3." },
+    limitations: [
+      "Occupation-level estimates describe groups, not individual offers or guaranteed outcomes.",
+      "Career resilience is a transparent CareerProof-derived profile, not an official automation forecast.",
+    ],
+  };
+}
+
+function normalizeDegreePayload(raw = {}) {
+  return {
+    ...raw,
+    boundary: raw.boundary || raw.limitations?.[0] || "The NCES/BLS crosswalk is a qualitative relationship, not a placement rate or proof of a required degree.",
+    related_careers: (raw.related_careers || raw.results || []).map(normalizeCareerPayload),
+    field_earnings: raw.field_earnings || null,
+  };
+}
+
+function normalizeLocationPayload(raw = {}) {
+  return {
+    ...raw,
+    rows: (raw.rows || raw.results || []).map((row) => ({
+      ...row,
+      label: row.label || row.state,
+      nominal_wage: row.nominal_wage ?? row.nominal_median_wage,
+      confidence: row.confidence || row.decision_confidence,
+    })),
+    boundary: raw.boundary || raw.summary,
+    freshness: { ...(raw.freshness || raw.data_freshness || {}), summary: raw.freshness?.summary || raw.data_freshness?.message || "BLS May 2025 wages are adjusted with BEA 2024 state price levels." },
+  };
+}
+
+function displayForColumn(row, column) {
+  const value = row[column.key];
+  if (column.format === "currency") return money(value);
+  if (column.format === "percent") return pct(value);
+  if (column.format === "decimal") return value === null || value === undefined ? "Not published" : Number(value).toFixed(2);
+  if (column.format === "number") return formatNumber(value);
+  return String(value ?? "—");
+}
+
+function normalizeAskPayload(raw = {}) {
+  if (raw.analysis || raw.explanation) return raw;
+  if (raw.status === "refused" || raw.status === "needs_clarification") {
+    return {
+      ...raw,
+      explanation: raw.summary,
+      refusal_reason: raw.query_plan?.reason || raw.summary,
+      boundary: raw.evidence?.trust_boundary,
+    };
+  }
+  const columns = raw.columns || [];
+  const labelKey = raw.chart?.label_key || columns[0]?.key || "label";
+  const valueKey = raw.chart?.value_key || columns[1]?.key;
+  const rows = (raw.rows || []).map((row) => ({
+    ...row,
+    label: row.label || row[labelKey] || row.occupation || row.state || row.skill,
+    display_value: displayForColumn(row, columns.find((column) => column.key === valueKey) || { key: valueKey }),
+  }));
+  const sourceNames = (raw.sources || []).map((source) => source.title || source.agency || source.id);
+  const sourceUrls = (raw.sources || []).map((source) => source.url).filter(Boolean);
+  return {
+    ...raw,
+    explanation: raw.summary,
+    source_id: raw.sources?.[0]?.id || raw.dataset,
+    analysis: {
+      rows,
+      value_key: valueKey,
+      table_columns: columns.map((column) => column.key),
+      rows_used: raw.evidence?.rows_returned ?? rows.length,
+      suppressed_or_excluded: Math.max(0, Number(raw.evidence?.rows_considered || rows.length) - Number(raw.evidence?.rows_returned || rows.length)),
+      calculation: raw.evidence?.calculation,
+    },
+    evidence: {
+      ...raw.evidence,
+      evidence_id: raw.evidence_id,
+      confidence: raw.confidence,
+      source_names: sourceNames,
+      source_urls: sourceUrls,
+      dataset_note: raw.evidence?.trust_boundary,
+    },
+    query_plan: {
+      ...raw.query_plan,
+      intent: raw.intent,
+      occupation_title: raw.profile?.occupation_title,
+      geography: raw.query_plan?.geography || raw.query_plan?.state || "National or requested ranking",
+      metric: valueKey,
+      source_id: raw.sources?.[0]?.id || raw.dataset,
+    },
+  };
+}
+
+function normalizeModelPayload(raw = {}) {
+  return {
+    ...raw,
+    dimensions: (raw.dimensions || []).map((dimension) => ({ ...dimension, signals: dimension.signals || dimension.keywords || [] })),
+    missing_data_policy: raw.missing_data_policy || "Missing work-content fields reduce evidence coverage. CareerProof does not invent dimension evidence.",
+    task_impact_method: raw.task_impact_method || "Official O*NET task statements are routed through a visible keyword taxonomy for human-led, AI-augmented, and routine-exposure examples.",
+    known_limitations: raw.known_limitations || raw.validation?.known_limitations || [],
+    sensitivity_presets: raw.sensitivity_presets || {},
+  };
+}
+
+function normalizeQualityPayload(raw = {}) {
+  return {
+    ...raw,
+    vintage_alignment: { ...(raw.vintage_alignment || {}), summary: raw.vintage_alignment?.summary || raw.vintage_alignment?.message },
+  };
+}
+
+function normalizeDiagnosticPayload(raw = {}) {
+  return {
+    ...raw,
+    passed: raw.passed ?? (raw.status === "pass" || raw.status === "passed"),
+    routing_regression: (raw.routing_regression || raw.routing || []).map((item) => ({ ...item, expected: item.expected || item.expected_intent, actual: item.actual || item.intent })),
+  };
+}
+
+function normalizeJudgePayload(raw = {}) {
+  return {
+    ...raw,
+    interpretation: normalizeInterpretationPayload(raw.interpretation || raw.path?.interpreted_request || {}),
+    path_builder: normalizePathPayload(raw.path_builder || raw.path || {}),
+    comparison: normalizeComparePayload(raw.comparison || {}),
+    verified_answer: normalizeAskPayload(raw.verified_answer || {}),
+    safe_refusal: normalizeAskPayload(raw.safe_refusal || raw.refusal || {}),
+  };
+}
+
+function getStoredProfile() {
+  const last = state.lastPath?.interpretation?.normalized_profile;
+  return last || state.home?.profile || {
+    interests: ["Electronics", "Programming", "Law"], skills: ["Python", "Arduino", "Writing"],
+    education_max: "Bachelor's degree", preferred_state: "Maryland", salary_goal: 90000,
+  };
+}
+
+function switchWorkspace(name, { scroll = true } = {}) {
+  const target = $(`#workspace-${name}`);
+  if (!target) return;
+  state.activeWorkspace = name;
+  $$(".workspace").forEach((workspace) => workspace.classList.remove("active"));
+  target.classList.add("active");
+  $$(".nav-item[data-workspace]").forEach((button) => button.classList.toggle("active", button.dataset.workspace === name));
+  $("#workspaceAnnouncer").textContent = `${WORKSPACE_TITLES[name] || name} opened`;
+  $(".sidebar").classList.remove("open");
+  if (scroll) scrollToTop();
+  if (name === "trust") loadTrustTab("sources");
+  if (name === "saved") renderSavedWorkspace();
+  if (name === "universe" && state.universe) renderUniverseRoot();
+}
+
+function renderWeightControls(containerId, weights, onChange) {
+  const container = $(`#${containerId}`);
+  if (!container) return;
+  container.innerHTML = Object.entries(WEIGHT_META).map(([key, meta]) => `
+    <label class="weight-control">
+      <span class="weight-head"><span>${escapeHTML(meta.label)}</span><strong data-weight-output="${key}">${Number(weights[key] || 0).toFixed(0)}%</strong></span>
+      <input type="range" min="0" max="50" step="1" value="${Number(weights[key] || 0)}" data-weight-key="${key}" aria-label="${escapeHTML(meta.label)} weight">
+      <small>${escapeHTML(meta.hint)}</small>
+    </label>`).join("");
+  container.oninput = (event) => {
+    const input = event.target.closest("[data-weight-key]");
+    if (!input) return;
+    const key = input.dataset.weightKey;
+    weights[key] = Number(input.value);
+    const output = container.querySelector(`[data-weight-output="${key}"]`);
+    if (output) output.textContent = `${input.value}%`;
+    onChange?.(weights);
+  };
+}
+
+function renderInterestChips() {
+  const interests = state.bootstrap?.interests || ["Electronics", "Programming", "Writing", "Public Speaking", "Law", "Politics", "Helping People", "Science", "Business", "Creative Work", "Hands-on Work", "Math", "Research", "Building Things"];
+  const container = $("#interestChips");
+  if (!container) return;
+  container.innerHTML = interests.map((interest) => `<button type="button" class="choice-chip ${state.selectedInterests.has(interest) ? "selected" : ""}" data-interest="${escapeHTML(interest)}">${escapeHTML(interest)}</button>`).join("");
+}
+
+function renderSkillTags() {
+  const container = $("#skillTags");
+  if (!container) return;
+  container.innerHTML = state.skills.map((skill, index) => `<span class="tag">${escapeHTML(skill)}<button type="button" data-remove-skill="${index}" aria-label="Remove ${escapeHTML(skill)}">×</button></span>`).join("");
+}
+
+function addSkill(value) {
+  const skill = String(value || "").trim();
+  if (!skill) return;
+  if (!state.skills.some((item) => item.toLowerCase() === skill.toLowerCase())) state.skills.push(skill);
+  renderSkillTags();
+  $("#skillInput").value = "";
+}
+
+function bindNavigation() {
+  document.addEventListener("click", (event) => {
+    const nav = event.target.closest("[data-workspace]");
+    if (nav) switchWorkspace(nav.dataset.workspace);
+    const jump = event.target.closest("[data-workspace-jump]");
+    if (jump) switchWorkspace(jump.dataset.workspaceJump);
+    const methodology = event.target.closest("[data-open-methodology]");
+    if (methodology) openMethodology();
+    const diagnostic = event.target.closest("[data-run-diagnostic]");
+    if (diagnostic) {
+      switchWorkspace("trust");
+      activateTrustTab("diagnostic");
+      runDiagnostic();
+    }
+  });
+  $("#mobileMenu").addEventListener("click", () => $(".sidebar").classList.toggle("open"));
+}
+
+function bindGlobalSearch() {
+  const input = $("#globalSearch");
+  const menu = $("#globalSearchResults");
+  const run = debounce(async () => {
+    const query = input.value.trim();
+    if (query.length < 2) { menu.classList.remove("open"); menu.innerHTML = ""; return; }
+    try {
+      const data = await api(`/api/occupations?query=${encodeURIComponent(query)}&limit=8`);
+      menu.innerHTML = (data.results || []).map((item) => `<button type="button" class="autocomplete-option" data-global-soc="${item.soc_code}"><strong>${escapeHTML(item.occupation_title)}</strong><small>${escapeHTML(item.category)} · ${money(item.median_wage, true)} median · ${escapeHTML(item.resilience_label || "Resilience calculated on open")}</small></button>`).join("") || `<div class="autocomplete-option"><strong>No matching occupation</strong><small>Press Enter to ask CareerProof instead.</small></div>`;
+      menu.classList.add("open");
+    } catch (error) { console.error(error); }
+  }, 220);
+  input.addEventListener("input", run);
+  input.addEventListener("focus", run);
+  menu.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-global-soc]");
+    if (!option) return;
+    input.value = "";
+    menu.classList.remove("open");
+    openOccupation(option.dataset.globalSoc);
+  });
+  $("#globalSearchForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const visible = menu.querySelector("[data-global-soc]");
+    if (visible) { visible.click(); return; }
+    const question = input.value.trim();
+    if (!question) return;
+    $("#questionInput").value = question;
+    input.value = "";
+    menu.classList.remove("open");
+    switchWorkspace("ask");
+    runQuestion(question);
+  });
+  document.addEventListener("keydown", (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault(); input.focus(); input.select();
+    }
+    if (event.key === "Escape") {
+      menu.classList.remove("open");
+      closeAllOverlays();
+    }
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest("#globalSearchForm")) menu.classList.remove("open");
+  });
+}
+
+async function searchOccupations(query, limit = 10) {
+  if (!String(query || "").trim()) return [];
+  const data = await api(`/api/occupations?query=${encodeURIComponent(query.trim())}&limit=${limit}`);
+  return data.results || [];
+}
+
+function attachCareerAutocomplete(input, onSelect) {
+  const menu = input.parentElement.querySelector(".autocomplete-menu");
+  const run = debounce(async () => {
+    const query = input.value.trim();
+    if (query.length < 2) { menu?.classList.remove("open"); return; }
+    try {
+      const results = await searchOccupations(query, 9);
+      if (!menu) return;
+      menu.innerHTML = results.map((item) => `<button type="button" class="autocomplete-option" data-soc="${item.soc_code}" data-title="${escapeHTML(item.occupation_title)}"><strong>${escapeHTML(item.occupation_title)}</strong><small>${escapeHTML(item.category)} · ${money(item.median_wage, true)} · ${pct(item.growth_percent)}</small></button>`).join("") || `<div class="autocomplete-option"><small>No matching occupation.</small></div>`;
+      menu.classList.add("open");
+    } catch (error) { console.error(error); }
+  }, 220);
+  input.addEventListener("input", () => { input.dataset.soc = ""; run(); });
+  input.addEventListener("focus", run);
+  menu?.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-soc]");
+    if (!option) return;
+    input.value = option.dataset.title;
+    input.dataset.soc = option.dataset.soc;
+    menu.classList.remove("open");
+    onSelect?.({ soc_code: option.dataset.soc, occupation_title: option.dataset.title });
+  });
+  input.addEventListener("blur", () => setTimeout(() => menu?.classList.remove("open"), 150));
+}
+
+function fillStateSelects(states) {
+  ["pathState", "compareState"].forEach((id) => {
+    const select = $(`#${id}`);
+    if (!select) return;
+    const first = select.querySelector("option");
+    select.innerHTML = first ? first.outerHTML : `<option value="">Any state</option>`;
+    states.forEach((stateName) => select.insertAdjacentHTML("beforeend", `<option value="${escapeHTML(stateName)}">${escapeHTML(stateName)}</option>`));
+  });
+  $("#pathState").value = "Maryland";
+  $("#compareState").value = "Maryland";
+}
+
+function renderStats() {
+  const stats = state.bootstrap?.stats || {};
+  const items = [
+    ["▣", `${formatNumber(stats.occupations || 0)}+`, "Occupations", "analyzed"],
+    ["⌂", `${compactNumber(stats.state_occupation_records || 0, 0)}+`, "Geographic records", "BLS state estimates"],
+    ["◇", `${compactNumber(stats.degree_relationships || 0, 1)}+`, "Degree & career", "official relationships"],
+    ["✓", `${formatNumber(stats.source_families || 0)}`, "Official data", "source families"],
+    ["◎", "Every", "Recommendation", "has inspectable evidence"],
+  ];
+  $("#statsGrid").innerHTML = items.map(([icon, value, label, detail]) => `<div class="stat-card"><span class="stat-icon">${icon}</span><strong>${escapeHTML(value)}</strong><small>${escapeHTML(label)}<em>${escapeHTML(detail)}</em></small></div>`).join("");
+}
+
+function renderSnapshot(profile = getStoredProfile()) {
+  const interests = profile.interests?.length ? profile.interests : [...state.selectedInterests];
+  const skills = profile.skills || state.skills;
+  const html = `
+    <div class="snapshot-list">
+      <div class="snapshot-item"><span>✧</span><div><small>Interests</small><strong>${escapeHTML(interests.slice(0, 4).join(", ") || "Not set")}</strong></div></div>
+      <div class="snapshot-item"><span>◇</span><div><small>Education goal</small><strong>${escapeHTML(profile.education_max || "No limit")}</strong></div></div>
+      <div class="snapshot-item"><span>⌖</span><div><small>Location</small><strong>${escapeHTML(profile.preferred_state || "Any state")}</strong></div></div>
+      <div class="snapshot-item"><span>$</span><div><small>Salary target</small><strong>${profile.salary_goal ? `${money(profile.salary_goal)}+` : "No minimum"}</strong></div></div>
+      <div class="snapshot-item"><span>⚙</span><div><small>Existing skills</small><strong>${escapeHTML((skills || []).slice(0, 4).join(", ") || "Not set")}</strong></div></div>
+    </div><button class="snapshot-update" data-workspace-jump="path">✎ Update preferences</button>`;
+  const container = $("#homeSnapshot");
+  container.querySelectorAll(".snapshot-list,.snapshot-update,.snapshot-loading").forEach((element) => element.remove());
+  container.insertAdjacentHTML("beforeend", html);
+}
+
+function cacheCareer(item) {
+  if (!item?.soc_code) return;
+  state.occupationCache.set(String(item.soc_code), item);
+}
+
+function renderHome() {
+  if (!state.home) return;
+  renderSnapshot(state.home.profile);
+  renderHomeMatches(state.home.path?.results || []);
+  renderHomeImpact(state.home.path?.results?.[0]);
+  renderHomeOpportunities(state.home.path?.results || []);
+  renderHomeFreshness(state.home.freshness);
+  renderHomeUniversePreview();
+}
+
+function renderHomeMatches(results) {
+  results.forEach(cacheCareer);
+  $("#homeMatches").innerHTML = results.slice(0, 4).map((item, index) => `
+    <article class="home-match-row" data-open-soc="${item.soc_code}" tabindex="0">
+      <span class="match-rank">${index + 1}</span>
+      <div class="home-match-title"><h3>${escapeHTML(item.occupation_title)}</h3><div class="match-badges"><span class="match-badge">${escapeHTML(item.resilience_label)}</span><span class="match-badge">${escapeHTML(item.feasibility?.status === "passes" ? "Feasible" : "Tradeoff")}</span></div><p>${escapeHTML(item.description || "Official occupation profile")}</p></div>
+      <div class="match-metric"><strong>${money(item.median_wage, true)}</strong><small>Median wage</small></div>
+      <div class="match-metric"><strong>${pct(item.growth_percent)}</strong><small>Growth</small></div>
+      <button class="bookmark-button" data-save-soc="${item.soc_code}" aria-label="Save ${escapeHTML(item.occupation_title)}">☆</button>
+    </article>`).join("");
+}
+
+function renderHomeImpact(item) {
+  const impact = item?.resilience_profile?.ai_task_impact || {};
+  const augmented = impact.ai_augmented?.count || 0;
+  const human = impact.human_led?.count || 0;
+  const reduced = impact.routine_reduced?.count || 0;
+  const total = Math.max(augmented + human + reduced, 1);
+  const augPct = Math.round(augmented / total * 100);
+  const humanPct = Math.round(human / total * 100);
+  const reducedPct = Math.max(0, 100 - augPct - humanPct);
+  const transformedEnd = augPct + humanPct;
+  $("#homeImpact").innerHTML = `
+    <div class="impact-donut" style="--augmented:${augPct}%;--transformed:${transformedEnd}%;--automatable:100%"><div><span><strong>${item ? Math.round(item.resilience_score) : "—"}</strong><small>resilience</small></span></div></div>
+    <div class="impact-legend">
+      <div><i style="background:#338cff"></i><span>Tasks AI may augment</span><strong>${augPct}%</strong></div>
+      <div><i style="background:#8952e5"></i><span>Tasks likely human-led</span><strong>${humanPct}%</strong></div>
+      <div><i style="background:#ef637c"></i><span>Routine exposure signals</span><strong>${reducedPct}%</strong></div>
+    </div>
+    <p class="impact-note">Task categories are keyword-based explanations of published O*NET task statements. They are not forecasts of job loss.</p>`;
+}
+
+function renderHomeOpportunities(results) {
+  const rows = results.filter((item) => item.state_match).slice(0, 4);
+  $("#homeOpportunities").innerHTML = rows.map((item) => `
+    <button class="opportunity-row" data-open-soc="${item.soc_code}">
+      <span>⌖</span><strong>${escapeHTML(item.occupation_title)}</strong>
+      <small>${money(item.state_match?.median_wage, true)} · ${compactNumber(item.state_match?.employment, 1)} workers</small>
+      <b class="confidence-chip">${escapeHTML(item.decision_confidence?.label || "Published")}</b>
+    </button>`).join("") || `<p class="muted-copy">No state rows were published for the selected profile's top results.</p>`;
+}
+
+function renderHomeFreshness(freshness) {
+  if (!freshness) return;
+  $("#homeFreshness").innerHTML = `<span>◷</span><div><strong>Different source years are visible, not silently blended.</strong> ${escapeHTML(freshness.summary || "")}</div><button data-workspace-jump="trust">Inspect vintages →</button>`;
+}
+
+function renderHomeUniversePreview() {
+  if (!state.universe) return;
+  const svg = $("#homeUniverseSvg");
+  svg.innerHTML = "";
+  const categories = state.universe.categories || [];
+  const points = categories.map((category, index) => ({
+    x: 70 + (index % 4) * 185 + (index % 2) * 25,
+    y: 45 + Math.floor(index / 4) * 100 + (index % 3) * 12,
+    color: category.color || "#627cff",
+    category,
+  }));
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      if ((i + j) % 3 === 0 || Math.abs(points[i].x - points[j].x) < 210) {
+        const line = document.createElementNS(SVG_NS, "line");
+        line.setAttribute("x1", points[i].x); line.setAttribute("y1", points[i].y);
+        line.setAttribute("x2", points[j].x); line.setAttribute("y2", points[j].y);
+        line.setAttribute("stroke", "#334f8d"); line.setAttribute("stroke-opacity", ".35"); line.setAttribute("stroke-width", ".8");
+        svg.appendChild(line);
+      }
+    }
+  }
+  points.forEach((point, index) => {
+    const circle = document.createElementNS(SVG_NS, "circle");
+    circle.setAttribute("cx", point.x); circle.setAttribute("cy", point.y); circle.setAttribute("r", 4 + (point.category.size || 1) / 80);
+    circle.setAttribute("fill", point.color); circle.setAttribute("opacity", ".92");
+    circle.style.filter = `drop-shadow(0 0 7px ${point.color})`;
+    svg.appendChild(circle);
+    for (let n = 0; n < 3; n++) {
+      const satellite = document.createElementNS(SVG_NS, "circle");
+      satellite.setAttribute("cx", point.x + Math.cos(n * 2.1 + index) * (18 + n * 6));
+      satellite.setAttribute("cy", point.y + Math.sin(n * 2.1 + index) * (14 + n * 5));
+      satellite.setAttribute("r", 1.7); satellite.setAttribute("fill", point.color); satellite.setAttribute("opacity", ".7");
+      svg.appendChild(satellite);
+    }
+  });
+}
+
+function universeNode(svg, { x, y, radius, color, label, sublabel, data, className = "" }) {
+  const group = document.createElementNS(SVG_NS, "g");
+  group.setAttribute("class", `universe-node ${className}`);
+  group.setAttribute("transform", `translate(${x} ${y})`);
+  group.setAttribute("tabindex", "0");
+  group.style.cursor = "pointer";
+  if (data) Object.entries(data).forEach(([key, value]) => { group.dataset[key] = value; });
+  const outer = document.createElementNS(SVG_NS, "circle");
+  outer.setAttribute("r", radius + 8); outer.setAttribute("fill", color); outer.setAttribute("opacity", ".08");
+  const circle = document.createElementNS(SVG_NS, "circle");
+  circle.setAttribute("r", radius); circle.setAttribute("fill", "#0c1627"); circle.setAttribute("stroke", color); circle.setAttribute("stroke-width", "2");
+  circle.style.filter = `drop-shadow(0 0 12px ${color}77)`;
+  const text = document.createElementNS(SVG_NS, "text");
+  text.setAttribute("text-anchor", "middle"); text.setAttribute("y", "2"); text.setAttribute("fill", "#f2f5ff"); text.setAttribute("font-size", radius > 40 ? "14" : "11.5"); text.setAttribute("font-weight", "700");
+  label.split(" ").slice(0, 3).forEach((word, index) => {
+    const tspan = document.createElementNS(SVG_NS, "tspan"); tspan.setAttribute("x", "0"); tspan.setAttribute("dy", index === 0 ? `${-(Math.min(label.split(" ").length, 3) - 1) * 6}` : "12"); tspan.textContent = word; text.appendChild(tspan);
+  });
+  group.append(outer, circle, text);
+  if (sublabel) {
+    const sub = document.createElementNS(SVG_NS, "text");
+    sub.setAttribute("text-anchor", "middle"); sub.setAttribute("y", radius + 20); sub.setAttribute("fill", "#6f7f9c"); sub.setAttribute("font-size", "11.5"); sub.textContent = sublabel;
+    group.appendChild(sub);
+  }
+  svg.appendChild(group);
+  return group;
+}
+
+function clearUniverse() {
+  const svg = $("#universeSvg");
+  svg.innerHTML = "";
+  $("#universeLoading").classList.add("hidden");
+}
+
+function renderUniverseRoot() {
+  if (!state.universe) return;
+  state.universeCategory = null;
+  state.universeCategoryData = null;
+  $("#universeBack").disabled = true;
+  clearUniverse();
+  const svg = $("#universeSvg");
+  const center = { x: 480, y: 320 };
+  const categories = state.universe.categories || [];
+  categories.forEach((category, index) => {
+    const angle = -Math.PI / 2 + index * (Math.PI * 2 / categories.length);
+    const x = center.x + Math.cos(angle) * 270;
+    const y = center.y + Math.sin(angle) * 215;
+    const line = document.createElementNS(SVG_NS, "line");
+    line.setAttribute("x1", center.x); line.setAttribute("y1", center.y); line.setAttribute("x2", x); line.setAttribute("y2", y);
+    line.setAttribute("stroke", category.color || "#5772ff"); line.setAttribute("stroke-opacity", ".26"); line.setAttribute("stroke-width", "1.2");
+    svg.appendChild(line);
+    const node = universeNode(svg, { x, y, radius: 39, color: category.color || "#5772ff", label: category.name, sublabel: `${category.size} careers`, data: { category: category.name } });
+    node.addEventListener("click", () => openUniverseCategory(category.name));
+    node.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") openUniverseCategory(category.name); });
+  });
+  universeNode(svg, { x: center.x, y: center.y, radius: 68, color: "#7062ff", label: "Career Universe", sublabel: `${state.universe.occupation_count || 830} official occupations` });
+  $("#universeDetail").innerHTML = `<div class="detail-empty"><div class="detail-orb">◎</div><h3>Choose a field</h3><p>Each category is a CareerProof interpretation of official work-content signals. Open one to see the exact occupations.</p><small>The category is derived. Salary, outlook, skills, and education values remain official.</small></div>`;
+}
+
+async function openUniverseCategory(categoryName) {
+  $("#universeLoading").classList.remove("hidden");
+  try {
+    const raw = await api(`/api/universe?category=${encodeURIComponent(categoryName)}&limit=12`);
+    const data = normalizeUniverseCategoryPayload(raw);
+    state.universeCategory = categoryName;
+    state.universeCategoryData = data;
+    $("#universeBack").disabled = false;
+    renderUniverseCategory(data);
+  } catch (error) { showToast(error.message); }
+  finally { $("#universeLoading").classList.add("hidden"); }
+}
+
+function renderUniverseCategory(data, filters = {}) {
+  clearUniverse();
+  const svg = $("#universeSvg");
+  let occupations = data.occupations || [];
+  const minSalary = Number(filters.salary || 0);
+  const education = filters.education || "";
+  const resilience = Number(filters.resilience || 0);
+  occupations = occupations.filter((item) => (!minSalary || Number(item.median_wage || 0) >= minSalary) && (!education || item.education === education) && (!resilience || Number(item.resilience_score || 0) >= resilience));
+  const displayed = occupations.slice(0, 18);
+  const center = { x: 480, y: 320 };
+  displayed.forEach((item, index) => {
+    const angle = -Math.PI / 2 + index * (Math.PI * 2 / Math.max(displayed.length, 1));
+    const ring = index % 2 === 0 ? 250 : 190;
+    const x = center.x + Math.cos(angle) * ring;
+    const y = center.y + Math.sin(angle) * (ring * .78);
+    const line = document.createElementNS(SVG_NS, "line");
+    line.setAttribute("x1", center.x); line.setAttribute("y1", center.y); line.setAttribute("x2", x); line.setAttribute("y2", y);
+    line.setAttribute("stroke", data.color || "#5878ff"); line.setAttribute("stroke-opacity", ".22");
+    svg.appendChild(line);
+    const node = universeNode(svg, { x, y, radius: 25, color: data.color || "#5878ff", label: item.occupation_title, sublabel: money(item.median_wage, true), data: { soc: item.soc_code } });
+    node.addEventListener("click", () => showUniverseOccupation(item.soc_code));
+  });
+  universeNode(svg, { x: center.x, y: center.y, radius: 60, color: data.color || "#6e65ff", label: data.name, sublabel: `${occupations.length} match filters` });
+  const educationOptions = [...new Set((data.occupations || []).map((item) => item.education).filter(Boolean))].sort();
+  $("#universeDetail").innerHTML = `
+    <div class="universe-filter-panel">
+      <span class="section-kicker">Functional filters</span><h3>${escapeHTML(data.name)}</h3>
+      <p>${escapeHTML(data.description || "CareerProof human-advantage category")}</p>
+      <label>Minimum median wage<input id="universeSalaryFilter" type="number" step="10000" value="${minSalary || ""}" placeholder="90000"></label>
+      <label>Maximum education<select id="universeEducationFilter"><option value="">Any education</option>${educationOptions.map((value) => `<option ${value === education ? "selected" : ""}>${escapeHTML(value)}</option>`).join("")}</select></label>
+      <label>Minimum resilience<select id="universeResilienceFilter"><option value="0">Any profile</option><option value="55" ${resilience === 55 ? "selected" : ""}>Moderate+</option><option value="70" ${resilience === 70 ? "selected" : ""}>Strong+</option><option value="82" ${resilience === 82 ? "selected" : ""}>Very strong</option></select></label>
+      <div class="universe-filter-count"><strong>${occupations.length}</strong><small>careers match</small></div>
+    </div>
+    <div class="universe-list">${occupations.slice(0, 10).map((item) => `<button data-universe-soc="${item.soc_code}"><span>${escapeHTML(item.occupation_title)}</span><small>${money(item.median_wage, true)} · ${pct(item.growth_percent)} growth · ${escapeHTML(item.resilience_label)}</small></button>`).join("")}</div>
+    <p class="universe-boundary">Connection shown: membership in a documented CareerProof category. It does not imply a hiring pathway or causal relationship.</p>`;
+  const applyFilters = debounce(() => renderUniverseCategory(data, {
+    salary: $("#universeSalaryFilter")?.value,
+    education: $("#universeEducationFilter")?.value,
+    resilience: $("#universeResilienceFilter")?.value,
+  }), 180);
+  $("#universeSalaryFilter")?.addEventListener("input", applyFilters);
+  $("#universeEducationFilter")?.addEventListener("change", applyFilters);
+  $("#universeResilienceFilter")?.addEventListener("change", applyFilters);
+  $$("[data-universe-soc]", $("#universeDetail")).forEach((button) => button.addEventListener("click", () => showUniverseOccupation(button.dataset.universeSoc)));
+}
+
+async function showUniverseOccupation(socCode) {
+  $("#universeDetail").innerHTML = `<div class="loading-card"><span class="spinner"></span><p>Joining official evidence by SOC code…</p></div>`;
+  try {
+    const data = normalizeOccupationPayload(await api(`/api/occupation/${encodeURIComponent(socCode)}`));
+    cacheCareer(data.profile);
+    const p = data.profile;
+    $("#universeDetail").innerHTML = `
+      <span class="section-kicker">Official SOC ${escapeHTML(p.soc_code)}</span>
+      <h2>${escapeHTML(p.occupation_title)}</h2><p>${escapeHTML(p.description || "")}</p>
+      <div class="detail-kpis"><div><small>Median wage</small><strong>${money(p.median_wage)}</strong></div><div><small>Growth</small><strong>${pct(p.growth_percent)}</strong></div><div><small>Openings</small><strong>${compactNumber(p.annual_openings)}</strong></div><div><small>Resilience</small><strong>${escapeHTML(p.resilience_label)} · ${p.resilience_score}</strong></div></div>
+      <div class="detail-reason"><strong>Why this category</strong><p>${escapeHTML(data.category_reason || "CareerProof mapped published work-content signals to this human-advantage category.")}</p></div>
+      <div class="detail-actions"><button class="primary-button" data-open-soc="${p.soc_code}">Open full profile</button><button class="outline-button" data-tray-soc="${p.soc_code}">Add to compare</button><button class="outline-button" data-save-soc="${p.soc_code}">Save</button></div>
+      <button class="soft-button" id="backToUniverseCategory">← Back to ${escapeHTML(state.universeCategory)}</button>`;
+    $("#backToUniverseCategory").addEventListener("click", () => renderUniverseCategory(state.universeCategoryData));
+  } catch (error) { $("#universeDetail").innerHTML = `<div class="error-card">${escapeHTML(error.message)}</div>`; }
+}
+
+function pathPayload() {
+  return {
+    profile_text: $("#profileText").value.trim(),
+    interests: [...state.selectedInterests],
+    skills: [...state.skills],
+    education_max: $("#pathEducation").value || null,
+    preferred_state: $("#pathState").value || null,
+    salary_goal: Number($("#pathSalary").value || 0) || null,
+    work_environment: [...state.workEnvironment],
+    remote_preference: $("#pathRemote").value,
+    willing_to_relocate: $("#willingRelocate").checked,
+    salary_is_hard: $("#hardSalary").checked,
+    education_is_hard: $("#hardEducation").checked,
+    location_is_hard: $("#hardLocation").checked,
+    weights: normalizeWeights(state.pathWeights),
+  };
+}
+
+function renderInterpretation(data) {
+  state.lastInterpretation = data;
+  const priorities = data.priorities || [];
+  const constraints = data.constraints || [];
+  $("#pathInterpretation").classList.remove("hidden");
+  $("#pathInterpretation").innerHTML = `
+    <article class="interpretation-card">
+      <header><div><span class="section-kicker">AI interpretation · review required</span><h2>${escapeHTML(data.goal)}</h2><p>${escapeHTML(data.interpretation_summary)}</p></div><span class="interpretation-status">Ready for human review</span></header>
+      <div class="interpretation-grid">
+        <section class="interpretation-section"><h3>Constraints</h3>${constraints.map((item) => `<p><strong>${escapeHTML(item.label)}:</strong> ${escapeHTML(item.value)} ${item.hard ? '<span class="feasibility-chip blocked">Hard</span>' : ""}</p>`).join("")}</section>
+        <section class="interpretation-section"><h3>Detected interests</h3><div class="interpretation-chip-list">${(data.interests || []).map((item) => `<span>${escapeHTML(item)}</span>`).join("") || "<span>None detected</span>"}</div><h3 style="margin-top:12px">Existing skills</h3><div class="interpretation-chip-list">${(data.skills || []).map((item) => `<span>${escapeHTML(item)}</span>`).join("") || "<span>None listed</span>"}</div></section>
+        <section class="interpretation-section"><h3>Priorities</h3>${priorities.map((item) => `<div class="priority-row"><span>${escapeHTML(item.label)}</span><b>${item.weight}%</b></div>`).join("")}</section>
+        <section class="interpretation-section"><h3>Work preferences</h3><p><strong>Environment:</strong> ${escapeHTML((data.work_environment || []).join(", ") || "No preference")}</p><p><strong>Remote:</strong> ${escapeHTML(data.remote_preference || "Not specified")}</p><p><strong>Relocation:</strong> ${data.willing_to_relocate ? "Willing" : "Not currently willing"}</p></section>
+      </div>
+      ${(data.warnings || []).map((warning) => `<div class="warning-line">${escapeHTML(warning)}</div>`).join("")}
+      <div class="interpretation-actions"><button id="editInterpretation" class="outline-button">Edit inputs</button><button id="confirmInterpretation" class="primary-button"><span>Confirm and calculate</span><b>→</b></button></div>
+    </article>`;
+  $$('[data-builder-step]').forEach((step) => { step.classList.toggle("active", step.dataset.builderStep === "2"); step.classList.toggle("complete", step.dataset.builderStep === "1"); });
+  $("#editInterpretation").addEventListener("click", () => { $("#profileText").focus(); $("#pathInterpretation").scrollIntoView({ behavior: "smooth", block: "start" }); showToast("Edit the form, then review the interpretation again."); });
+  $("#confirmInterpretation").addEventListener("click", runPathBuilder);
+  $("#pathInterpretation").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function reviewPathInterpretation() {
+  const button = $("#pathForm button[type=submit]");
+  setButtonLoading(button, true, "Interpreting your goal…");
+  try {
+    const data = normalizeInterpretationPayload(await api("/api/interpret-profile", { method: "POST", body: JSON.stringify(pathPayload()) }));
+    renderInterpretation(data);
+  } catch (error) { showToast(error.message); }
+  finally { setButtonLoading(button, false); }
+}
+
+async function runPathBuilder() {
+  const button = $("#confirmInterpretation");
+  setButtonLoading(button, true, "Calculating verified paths…");
+  $("#pathResults").innerHTML = `<div class="empty-intelligence"><span class="spinner"></span><h2>Applying hard constraints and transparent weights</h2><p>CareerProof is ranking 830 occupations, then enriching only the visible evidence cards.</p></div>`;
+  try {
+    const payload = { ...pathPayload(), confirmed_interpretation: true, limit: 8 };
+    const data = normalizePathPayload(await api("/api/path-builder", { method: "POST", body: JSON.stringify(payload) }));
+    state.lastPath = data;
+    safeStorage.setItem("careerproof-last-path", JSON.stringify(data));
+    renderPathResults(data);
+    renderSnapshot(data.interpretation?.normalized_profile || payload);
+    $("#sidebarProgressValue").textContent = "100%";
+    $("#sidebarProgressBar").style.width = "100%";
+    $$('[data-builder-step]').forEach((step) => { step.classList.toggle("active", step.dataset.builderStep === "3"); step.classList.toggle("complete", step.dataset.builderStep !== "3"); });
+  } catch (error) {
+    $("#pathResults").innerHTML = `<div class="refusal-card"><span class="refusal-badge">Could not calculate</span><h2>CareerProof stopped safely</h2><p>${escapeHTML(error.message)}</p></div>`;
+  } finally { setButtonLoading(button, false); }
+}
+
+function feasibilityClass(status) {
+  if (status === "passes") return "passes";
+  if (status === "blocked") return "blocked";
+  return "tradeoff";
+}
+
+function contributionRows(item) {
+  return Object.entries(item.contributions || {}).map(([key, value]) => `
+    <div class="component-bar"><span>${escapeHTML(WEIGHT_META[key]?.label || titleCase(key))}</span><i class="component-track"><span style="width:${Math.min(100, Number(item.components?.[key] || 0))}%"></span></i><strong>${Number(value).toFixed(1)}</strong></div>`).join("");
+}
+
+function resilienceMini(profile) {
+  if (!profile) return "";
+  const dimensions = Object.entries(profile.dimensions || {}).slice(0, 6);
+  return `<div class="resilience-mini"><div class="resilience-score-block"><strong>${Math.round(profile.overall_score)}</strong><small>${escapeHTML(profile.overall_label)} resilience</small></div><div class="resilience-dimension-list">${dimensions.map(([key, value]) => `<div class="resilience-dimension"><span>${escapeHTML(value.label)}</span><b>${Math.round(value.score)}</b><i style="--value:${Math.round(value.score)}%"></i></div>`).join("")}</div></div>`;
+}
+
+function roadmapPreview(roadmap) {
+  if (!roadmap) return "";
+  const items = [
+    ["Learn", roadmap.learn?.[0]], ["Build", roadmap.build?.[0]], ["Prepare", roadmap.prepare?.[0]],
+  ].filter(([, item]) => item);
+  return `<div class="roadmap-preview"><small>FIRST PRACTICAL MOVES</small>${items.map(([label, item]) => `<div><span>${label[0]}</span><p><strong>${escapeHTML(item.title || label)}</strong><small>${escapeHTML(item.detail || "")}</small></p></div>`).join("")}<em>${escapeHTML(roadmap.boundary || "")}</em></div>`;
+}
+
+function challengePanel(item) {
+  const challenge = item.challenge || {};
+  return `<div class="challenge-panel hidden" data-challenge-panel="${item.soc_code}"><h4>Challenge this recommendation</h4><div class="challenge-grid"><section><h5>Weakest evidence</h5><p>${escapeHTML(challenge.weakest_evidence || "No specific weakness published.")}</p><h5>Missing information</h5><ul>${(challenge.missing_information || []).map((value) => `<li>${escapeHTML(value)}</li>`).join("")}</ul></section><section><h5>Assumptions</h5><ul>${(challenge.assumptions || []).map((value) => `<li>${escapeHTML(value)}</li>`).join("")}</ul><h5>Strongest challenger</h5><p>${escapeHTML(challenge.strongest_challenger ? `${challenge.strongest_challenger.occupation_title}: ${challenge.strongest_challenger.why_it_could_win}` : "No alternate career in the visible result set.")}</p></section></div></div>`;
+}
+
+function pathCard(item, index) {
+  cacheCareer(item);
+  const reasons = item.why || [];
+  const profile = item.resilience_profile;
+  return `<article class="path-card" style="animation-delay:${index * 55}ms">
+    <div class="path-card-top">
+      <div class="score-ring" style="--score:${Math.round(item.score)}"><div><strong>${Math.round(item.score)}</strong><small>fit</small></div></div>
+      <div><span class="path-type">${escapeHTML(item.path_label || `Match ${index + 1}`)}</span><h3>${escapeHTML(item.occupation_title)}</h3><div class="path-meta"><span>${escapeHTML(item.soc_code)}</span><span>${escapeHTML(item.category)}</span><span>${escapeHTML(item.education || "Education not published")}</span><b class="derived-chip">CP-derived score</b></div></div>
+      <span class="feasibility-chip ${feasibilityClass(item.feasibility?.status)}">${escapeHTML(item.feasibility?.status || "review")}</span>
+    </div>
+    <div class="path-reasons">${reasons.slice(0, 4).map((reason) => `<span>✓ ${escapeHTML(reason)}</span>`).join("")}</div>
+    <div class="path-metrics"><div class="path-metric"><small>Median wage</small><strong>${money(item.median_wage)}</strong></div><div class="path-metric"><small>Wage range</small><strong>${money(item.wage_p10, true)}–${money(item.wage_p90, true)}</strong></div><div class="path-metric"><small>Growth</small><strong>${pct(item.growth_percent)}</strong></div><div class="path-metric"><small>Openings</small><strong>${compactNumber(item.annual_openings)}</strong></div><div class="path-metric"><small>${escapeHTML(item.state_match?.state || "State coverage")}</small><strong>${item.state_match ? money(item.state_match.median_wage, true) : `${item.state_coverage || 0} areas`}</strong></div></div>
+    ${resilienceMini(profile)}
+    <div class="component-bars">${contributionRows(item)}</div>
+    ${roadmapPreview(item.roadmap)}
+    <div class="path-card-actions"><button class="challenge-button" data-toggle-challenge="${item.soc_code}">Challenge recommendation</button><button data-evidence-soc="${item.soc_code}">Evidence passport</button><button data-tray-soc="${item.soc_code}">Compare</button><button data-save-soc="${item.soc_code}">Save</button><button class="explore" data-open-soc="${item.soc_code}">Full profile →</button></div>
+    ${challengePanel(item)}
+  </article>`;
+}
+
+function renderPathResults(data) {
+  const results = data.results || [];
+  const top = results[0];
+  const portfolio = data.portfolio || {};
+  const sensitivity = data.sensitivity || [];
+  const whatChanges = data.what_would_change_recommendation || [];
+  const groups = data.result_groups || {};
+  $("#pathResults").innerHTML = `
+    <header class="path-results-head"><span class="section-kicker">Verified recommendation set</span><h2>${escapeHTML(data.headline || "Your strongest evidence-backed paths")}</h2><p>${escapeHTML(data.disclosure || "")}</p><div class="data-vintage-inline"><span>◷</span><div><strong>Data-vintage notice:</strong> ${escapeHTML(data.freshness?.summary || "Source periods differ and are disclosed.")}</div></div></header>
+    <div class="path-result-list">${results.map(pathCard).join("")}</div>
+    <div class="decision-summary-grid">
+      <section class="decision-panel"><span class="section-kicker">Career portfolio</span><h3>Do not bet on only one future</h3><div class="portfolio-grid">${[
+        ["Primary path", portfolio.primary_path], ["Safer backup", portfolio.safer_backup], ["High upside", portfolio.high_upside_option], ["Fast entry", portfolio.fast_entry_option],
+      ].map(([label, item]) => item ? `<button class="portfolio-item" data-open-soc="${item.soc_code}"><small>${escapeHTML(label)}</small><strong>${escapeHTML(item.occupation_title)}</strong><span>${Math.round(item.score)} fit · ${escapeHTML(item.resilience_label)}</span></button>` : "").join("")}</div><p class="form-disclosure">${escapeHTML(portfolio.boundary || "")}</p></section>
+      <section class="decision-panel"><span class="section-kicker">Counterfactual test</span><h3>What wins under different priorities?</h3><div class="sensitivity-list">${sensitivity.map((item) => `<div class="sensitivity-row"><span>${escapeHTML(item.label)}</span><strong>${escapeHTML(item.top_occupation)}</strong><b>${Number(item.top_score).toFixed(1)}</b></div>`).join("")}</div></section>
+      <section class="decision-panel"><span class="section-kicker">What would change this?</span><h3>Conditions that move the recommendation</h3><div class="sensitivity-list">${whatChanges.map((item) => `<div class="sensitivity-row"><span>${escapeHTML(item.condition)}</span><strong>${escapeHTML(item.impact)}</strong><b>↗</b></div>`).join("")}</div></section>
+      <section class="decision-panel"><span class="section-kicker">Grouped alternatives</span><h3>Different ways to define success</h3><div class="sensitivity-list">${Object.entries(groups).map(([key, items]) => `<div class="sensitivity-row"><span>${escapeHTML(titleCase(key))}</span><strong>${escapeHTML(items?.[0]?.occupation_title || "No published match")}</strong><b>${items?.length || 0}</b></div>`).join("")}</div></section>
+    </div>
+    ${top ? `<div class="freshness-banner"><span>✦</span><div><strong>Why ${escapeHTML(top.occupation_title)} leads:</strong> ${escapeHTML(data.ranking_explanation?.top_reason || top.why?.[0] || "It best matches the selected priorities.")}</div><button data-toggle-challenge="${top.soc_code}">Challenge it →</button></div>` : ""}`;
+  $("#pathResults").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderCompareSlots() {
+  const container = $("#compareSlots");
+  container.innerHTML = state.compareValues.map((value, index) => `
+    <div class="compare-slot"><span class="slot-number">0${index + 1}</span><label>${index === 0 ? "First career" : index === 1 ? "Second career" : "Optional career"}</label><div class="career-search-wrap"><input data-compare-index="${index}" value="${escapeHTML(value)}" placeholder="Search occupation"><div class="autocomplete-menu"></div></div></div>`).join("");
+  $$('[data-compare-index]', container).forEach((input) => attachCareerAutocomplete(input, (item) => {
+    const index = Number(input.dataset.compareIndex);
+    state.compareValues[index] = item.occupation_title;
+    state.compareResolved[index] = item;
+  }));
+}
+
+function comparePayload() {
+  const values = $$('[data-compare-index]').map((input, index) => {
+    state.compareValues[index] = input.value.trim();
+    return input.value.trim();
+  }).filter(Boolean);
+  return {
+    occupations: values,
+    weights: normalizeWeights(state.compareWeights),
+    preferred_state: $("#compareState").value || null,
+    skills: $("#compareSkills").value.split(",").map((item) => item.trim()).filter(Boolean),
+    education_max: $("#compareEducation").value || null,
+    salary_goal: Number($("#compareSalary").value || 0) || null,
+    salary_is_hard: $("#compareHardSalary").checked,
+    education_is_hard: $("#compareHardEducation").checked,
+    location_is_hard: $("#compareHardLocation").checked,
+  };
+}
+
+async function runCompare() {
+  const payload = comparePayload();
+  if (payload.occupations.length < 2) { showToast("Add at least two careers to compare."); return; }
+  const button = $("#runCompare");
+  setButtonLoading(button, true, "Calculating tradeoffs…");
+  $("#compareResults").innerHTML = `<div class="empty-state card"><span class="spinner"></span><h3>Calculating and verifying</h3><p>Every factual value comes from the bundled official snapshots.</p></div>`;
+  try {
+    const data = normalizeComparePayload(await api("/api/compare", { method: "POST", body: JSON.stringify(payload) }));
+    state.lastCompare = data;
+    (data.results || []).forEach(cacheCareer);
+    renderCompare(data);
+  } catch (error) { $("#compareResults").innerHTML = `<div class="refusal-card"><h2>Comparison stopped</h2><p>${escapeHTML(error.message)}</p></div>`; }
+  finally { setButtonLoading(button, false); }
+}
+
+function compareCareerCard(item, index) {
+  return `<article class="compare-career-card rank-${index + 1}"><div class="compare-rank"><span>Rank ${index + 1}</span><span class="feasibility-chip ${feasibilityClass(item.feasibility?.status)}">${escapeHTML(item.feasibility?.status || "review")}</span></div><h3>${escapeHTML(item.occupation_title)}</h3><div class="compare-score">${Number(item.score).toFixed(1)}<small>/100</small></div><div class="compare-stat-list"><div class="compare-stat"><span>Median wage</span><strong>${money(item.median_wage)}</strong></div><div class="compare-stat"><span>Growth</span><strong>${pct(item.growth_percent)}</strong></div><div class="compare-stat"><span>Annual openings</span><strong>${compactNumber(item.annual_openings)}</strong></div><div class="compare-stat"><span>Education</span><strong>${escapeHTML(item.education || "Not published")}</strong></div><div class="compare-stat"><span>Resilience</span><strong>${escapeHTML(item.resilience_label)} · ${Math.round(item.resilience_score)}</strong></div><div class="compare-stat"><span>State pay</span><strong>${item.state_match ? money(item.state_match.median_wage) : "No selected state row"}</strong></div></div><div class="path-card-actions"><button data-evidence-soc="${item.soc_code}">Evidence</button><button data-open-soc="${item.soc_code}">Profile</button><button data-save-soc="${item.soc_code}">Save</button></div></article>`;
+}
+
+function renderCompare(data) {
+  const results = data.results || [];
+  const winner = results[0];
+  const metrics = ["interest_fit", "resilience", "salary", "growth", "openings", "education", "location", "stability"];
+  $("#compareResults").innerHTML = `
+    <section class="compare-winner"><span class="section-kicker">Calculated result</span><h2>${escapeHTML(data.headline || (winner ? `${winner.occupation_title} ranks first` : "Comparison"))}</h2><p>${escapeHTML(data.disclosure || "")}</p><div class="tradeoff-callout">${escapeHTML(data.tradeoff_summary?.plain_language || "The visible result reflects the selected weights and published values.")}</div></section>
+    <div class="compare-card-grid">${results.map(compareCareerCard).join("")}</div>
+    <section class="compare-chart card"><h3>Normalized score components</h3>${metrics.map((metric) => `<div class="comparison-row"><strong>${escapeHTML(WEIGHT_META[metric]?.label || titleCase(metric))}</strong><div class="comparison-bars">${results.map((item) => `<div class="comparison-bar"><span>${escapeHTML(item.occupation_title)}</span><i class="track"><span style="width:${Math.min(100, Number(item.components?.[metric] || 0))}%"></span></i><b>${Number(item.components?.[metric] || 0).toFixed(0)}</b></div>`).join("")}</div></div>`).join("")}</section>
+    <div class="decision-summary-grid"><section class="decision-panel"><span class="section-kicker">Scenario sensitivity</span><h3>Which career wins when priorities change?</h3><div class="sensitivity-list">${(data.sensitivity || []).map((item) => `<div class="sensitivity-row"><span>${escapeHTML(item.label)}</span><strong>${escapeHTML(item.top_occupation)}</strong><b>${Number(item.top_score).toFixed(1)}</b></div>`).join("")}</div></section><section class="decision-panel"><span class="section-kicker">Evidence boundary</span><h3>What this comparison can and cannot say</h3><div class="evidence-box blue"><small>Verified</small><strong>Wage, employment, projections, skills, degree links, and state estimates</strong><p>Calculated through exact SOC-code joins and explicit formulas.</p></div><div class="evidence-box" style="margin-top:7px"><small>Not guaranteed</small><strong>Personal outcomes, future hiring, or permanent AI safety</strong><p>Those claims are outside the bundled data and are never presented as facts.</p></div></section></div>`;
+  $("#compareResults").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function resolveCareerInput(input) {
+  if (input.dataset.soc) return { soc_code: input.dataset.soc, occupation_title: input.value.trim() };
+  const results = await searchOccupations(input.value.trim(), 1);
+  if (!results.length) throw new Error(`No occupation matched “${input.value.trim()}”.`);
+  input.dataset.soc = results[0].soc_code;
+  input.value = results[0].occupation_title;
+  return results[0];
+}
+
+async function runBridge() {
+  const button = $("#runBridge");
+  setButtonLoading(button, true, "Building bridge…");
+  try {
+    const source = await resolveCareerInput($("#bridgeSource"));
+    const target = await resolveCareerInput($("#bridgeTarget"));
+    const data = normalizeBridgePayload(await api("/api/skill-bridge", { method: "POST", body: JSON.stringify({ source: source.soc_code, target: target.soc_code }) }));
+    renderBridge(data);
+  } catch (error) { showToast(error.message); }
+  finally { setButtonLoading(button, false); }
+}
+
+function renderBridge(data) {
+  cacheCareer(data.source); cacheCareer(data.target);
+  $("#bridgeResults").innerHTML = `<article class="skill-bridge-card card"><header class="bridge-head"><span class="section-kicker">Possible pathway · not a guarantee</span><h2>${escapeHTML(data.headline)}</h2><p>${escapeHTML(data.boundary)}</p></header><div class="bridge-visual"><div class="bridge-career"><small>Starting career</small><h3>${escapeHTML(data.source.occupation_title)}</h3><strong>${money(data.source.median_wage)}</strong><p>${escapeHTML(data.source.education || "Education not published")}</p></div><div class="bridge-center"><div class="overlap-orb" style="--score:${Math.round(data.overall_overlap)}"><div><strong>${Math.round(data.overall_overlap)}%</strong><small>overall overlap</small></div></div></div><div class="bridge-career"><small>Target career</small><h3>${escapeHTML(data.target.occupation_title)}</h3><strong>${money(data.target.median_wage)}</strong><p>${escapeHTML(data.target.education || "Education not published")}</p></div></div><div class="bridge-component-grid"><div><small>Task similarity</small><strong>${Math.round(data.task_similarity)}%</strong></div><div><small>Technology overlap</small><strong>${Math.round(data.technology_overlap)}%</strong></div><div><small>Shared skills</small><strong>${data.shared_skills.length}</strong></div></div><div class="bridge-columns"><section class="skill-panel"><h3>Shared transferable skills</h3>${data.shared_skills.slice(0, 8).map((skill) => `<div class="skill-row"><span>${escapeHTML(skill.skill_name)}</span><strong>${Number(skill.shared_score).toFixed(1)}</strong></div>`).join("") || `<p class="form-disclosure">No exact skill-name overlap was published.</p>`}</section><section class="skill-panel"><h3>Target skill gaps</h3>${data.skill_gaps.slice(0, 8).map((skill) => `<div class="skill-row"><span>${escapeHTML(skill.skill_name)}</span><strong>${Number(skill.target_importance).toFixed(1)}</strong></div>`).join("") || `<p class="form-disclosure">No ranked gap was available.</p>`}</section></div><section class="roadmap-preview" style="margin-top:9px"><small>TRANSITION STEPS</small>${data.pathway.map((step) => `<div><span>${step.step}</span><p><strong>${escapeHTML(step.title)}</strong><small>${escapeHTML(step.detail)}</small></p></div>`).join("")}</section></article>`;
+  $("#bridgeResults").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderQuickQuestions() {
+  const questions = state.bootstrap?.quick_questions || [];
+  $("#quickQuestions").innerHTML = questions.slice(0, 8).map((question) => `<button class="quick-question" data-quick-question="${escapeHTML(question)}">${escapeHTML(question)}</button>`).join("");
+}
+
+async function runQuestion(questionOverride = null) {
+  const question = questionOverride || $("#questionInput").value.trim();
+  if (!question) { showToast("Enter a question first."); return; }
+  $("#questionInput").value = question;
+  $("#resultArea").innerHTML = `<div class="loading-card card"><span class="loader-core"></span><h3>Building a controlled query plan</h3><p>Resolving occupation, geography, metric, filters, and the allowed calculation.</p></div>`;
+  try {
+    const data = normalizeAskPayload(await api("/api/ask", { method: "POST", body: JSON.stringify({ question, dataset: $("#datasetSelect").value }) }));
+    renderQuestionResult(data);
+  } catch (error) { $("#resultArea").innerHTML = `<div class="refusal-card"><h2>Analysis stopped</h2><p>${escapeHTML(error.message)}</p></div>`; }
+}
+
+function renderQuestionResult(data) {
+  if (data.status === "refused") {
+    $("#resultArea").innerHTML = `<article class="refusal-card"><span class="refusal-badge">Safe refusal</span><h2>${escapeHTML(data.headline)}</h2><p>${escapeHTML(data.explanation)}</p><div class="evidence-box"><small>Why CareerProof refused</small><strong>${escapeHTML(data.refusal_reason || "The bundled data cannot verify the requested conclusion.")}</strong><p>${escapeHTML(data.boundary || "")}</p></div><h3>Supported alternatives</h3><div class="suggestion-list">${(data.suggestions || []).map((question) => `<button data-quick-question="${escapeHTML(question)}">${escapeHTML(question)}</button>`).join("")}</div></article>`;
     return;
   }
-  const sources = result.sources.map(s=>`<a class="source-link" href="${escapeHTML(s.url)}" target="_blank" rel="noreferrer">${escapeHTML(s.agency)} · ${escapeHTML(s.vintage)} ↗</a>`).join('');
-  const limitations = result.limitations.length ? `<ul class="limitations">${result.limitations.map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul>` : '';
-  const suggestions = result.suggestions.length ? `<div class="evidence-box"><small>Continue exploring</small><div class="suggestion-list">${result.suggestions.map(q=>`<button class="suggestion-button" data-question="${escapeHTML(q)}">→ ${escapeHTML(q)}</button>`).join('')}</div></div>` : '';
-  $('#resultArea').innerHTML = `<article class="result-card card"><div class="result-top"><div><div class="result-status">Verified by code</div><h2 class="result-title">${escapeHTML(result.headline)}</h2><p class="result-summary">${escapeHTML(result.summary)}</p></div>${confidenceMarkup(result.confidence)}</div>
-    <div class="proof-strip"><div><small>1 · Route</small><strong>${escapeHTML(result.dataset)}</strong></div><div><small>2 · Intent</small><strong>${escapeHTML(result.intent)}</strong></div><div><small>3 · Rows used</small><strong>${result.evidence.rows_considered.toLocaleString()}</strong></div><div><small>4 · Evidence ID</small><strong>${escapeHTML(result.evidence_id)}</strong></div></div>
-    <div class="result-body"><div class="result-main">${chartMarkup(result)}${tableMarkup(result)}</div><aside class="evidence-panel"><div class="evidence-box green"><small>Calculation</small><strong>Deterministic result</strong><p>${escapeHTML(result.evidence.calculation)}</p></div><div class="evidence-box blue"><small>Evidence Passport</small><strong class="evidence-id">${escapeHTML(result.evidence_id)}</strong><p>Changes when the question plan, source rows, or result changes.</p></div><div class="evidence-box"><small>Official sources</small>${sources}</div><div class="evidence-box"><small>Limitations</small>${limitations || '<p>No additional limitation note.</p>'}</div>${suggestions}<div class="result-actions"><button class="secondary-button" id="downloadReport">Download evidence report</button><button class="secondary-button" id="copyEvidence">Copy Evidence ID</button></div></aside></div></article>`;
+  const rows = data.analysis?.rows || [];
+  const valueKey = data.analysis?.value_key;
+  const max = Math.max(...rows.map((row) => Number(row[valueKey] || 0)), 1);
+  const chart = rows.slice(0, 12).map((row) => `<div class="bar-row"><span>${escapeHTML(row.label)}</span><i class="bar-track"><span class="bar-fill" style="width:${Math.max(3, Number(row[valueKey] || 0) / max * 100)}%"></span></i><strong>${escapeHTML(row.display_value)}</strong></div>`).join("");
+  const tableHeaders = data.analysis?.table_columns || [];
+  const table = rows.length ? `<div class="location-table-wrap"><table class="analysis-table"><thead><tr>${tableHeaders.map((header) => `<th>${escapeHTML(titleCase(header))}</th>`).join("")}</tr></thead><tbody>${rows.slice(0, 25).map((row) => `<tr>${tableHeaders.map((header) => `<td>${escapeHTML(row[header] ?? "—")}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` : "";
+  const confidence = data.evidence?.confidence || {};
+  const plan = data.query_plan || {};
+  $("#resultArea").innerHTML = `<article class="result-card card"><header class="result-top"><div><span class="section-kicker">Verified answer</span><h2>${escapeHTML(data.headline)}</h2><p>${escapeHTML(data.explanation)}</p></div><div class="confidence-stack"><div class="confidence-card"><small>Source confidence</small><strong>${escapeHTML(confidence.label || "Published")}</strong><p>${escapeHTML(confidence.reason || "")}</p></div><div class="confidence-card"><small>Evidence ID</small><strong>${escapeHTML(data.evidence?.evidence_id || "Generated")}</strong><p>${escapeHTML(data.evidence?.generated_at || "")}</p></div></div></header><div class="proof-strip"><div><small>Source</small><strong>${escapeHTML(data.evidence?.source_names?.join(" + ") || "Official snapshot")}</strong></div><div><small>Rows used</small><strong>${formatNumber(data.analysis?.rows_used || rows.length)}</strong></div><div><small>Suppressed / excluded</small><strong>${formatNumber(data.analysis?.suppressed_or_excluded || 0)}</strong></div><div><small>Calculation</small><strong>${escapeHTML(data.analysis?.calculation || "Visible below")}</strong></div></div><div class="result-body"><section class="result-main"><span class="section-kicker">Visible calculation</span><div class="bar-chart">${chart}</div>${table}</section><aside class="evidence-panel"><span class="section-kicker">Structured query plan</span><div class="query-plan"><div class="query-step"><small>Intent</small><strong>${escapeHTML(titleCase(plan.intent || "unknown"))}</strong></div><div class="query-step"><small>Occupation</small><strong>${escapeHTML(plan.occupation_title || "Not required")}</strong></div><div class="query-step"><small>Geography</small><strong>${escapeHTML(plan.geography || "National")}</strong></div><div class="query-step"><small>Metric</small><strong>${escapeHTML(titleCase(plan.metric || "Not specified"))}</strong></div><div class="query-step"><small>Source route</small><strong>${escapeHTML(plan.source_id || data.source_id)}</strong></div></div><button class="primary-button full" data-open-answer-evidence style="margin-top:10px">Open full Evidence Passport</button><h3>Limitations</h3><ul class="limitation-list">${(data.limitations || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></aside></div></article>`;
+  $("[data-open-answer-evidence]")?.addEventListener("click", () => openAnswerEvidence(data));
 }
 
-async function searchOccupations(query) {
-  if (!query.trim()) { $('#occupationSearchResults').innerHTML=''; return; }
-  const response = await fetch(`/api/search/occupations?q=${encodeURIComponent(query)}&limit=10`);
-  const data = await response.json();
-  $('#occupationSearchResults').innerHTML = data.results.map(r=>`<button class="search-result" data-soc="${r.soc_code}"><strong>${escapeHTML(r.occupation_title)}</strong><small>${r.soc_code} · ${formatValue(r.annual_median_wage_2025,'currency')} · ${escapeHTML(r.typical_entry_education||'Education not published')}</small></button>`).join('') || '<p>No matching occupation found.</p>';
+function occupationProfileTabs() {
+  return ["overview", "resilience", "skills", "tasks", "locations", "degrees", "coverage"];
 }
-async function loadOccupation(soc) {
-  navigate('occupations'); $('#occupationProfile').className='card occupation-profile-placeholder'; $('#occupationProfile').innerHTML='<div class="spinner"></div><p>Loading official occupation profile...</p>';
+
+async function openOccupation(socCode) {
+  switchWorkspace("occupations");
+  const container = $("#occupationProfile");
+  container.className = "occupation-profile-placeholder card";
+  container.innerHTML = `<div class="loading-card"><span class="spinner"></span><p>Joining official sources by SOC code…</p></div>`;
   try {
-    const response = await fetch(`/api/occupation/${encodeURIComponent(soc)}`); if(!response.ok) throw new Error('Occupation profile not found.');
-    const data = await response.json(); renderOccupationProfile(data);
-  } catch(error) { $('#occupationProfile').innerHTML=`<div class="empty-icon">!</div><h3>Could not load profile</h3><p>${escapeHTML(error.message)}</p>`; }
-}
-function renderOccupationProfile(data) {
-  const o = data.occupation;
-  const skills = data.skills.slice(0,8); const maxSkill = Math.max(...skills.map(s=>Number(s.importance)||0),1);
-  $('#occupationProfile').className='card occupation-profile';
-  $('#occupationProfile').innerHTML=`<header class="occupation-header"><small>${escapeHTML(o.soc_code)} · BLS + O*NET unified profile</small><h2>${escapeHTML(o.occupation_title)}</h2><p>${escapeHTML(o.description||'Official occupation profile')}</p></header>
-    <div class="occupation-kpis"><div><small>Median wage</small><strong>${formatValue(o.annual_median_wage_2025,'currency')}</strong></div><div><small>Employment</small><strong>${formatValue(o.employment_2025,'number')}</strong></div><div><small>Growth 2024–34</small><strong>${formatValue(o.employment_change_percent_2024_2034,'percent')}</strong></div><div><small>Annual openings</small><strong>${formatValue((o.annual_openings_2024_2034_thousands||0)*1000,'number')}</strong></div><div><small>Typical education</small><strong>${escapeHTML(o.typical_entry_education||'Not published')}</strong></div></div>
-    <div class="occupation-content"><section class="profile-section"><h3>Essential skills</h3><div class="skill-list">${skills.map(s=>`<div class="skill-item"><span>${escapeHTML(s.skill)}</span><strong>${Number(s.importance).toFixed(2)}</strong><div class="skill-meter"><span style="width:${Number(s.importance)/maxSkill*100}%"></span></div></div>`).join('')||'<p>No published skills.</p>'}</div></section>
-    <section class="profile-section"><h3>Knowledge areas</h3><div class="skill-list">${data.knowledge.slice(0,8).map(k=>`<div class="skill-item"><span>${escapeHTML(k.knowledge_area)}</span><strong>${Number(k.importance).toFixed(2)}</strong></div>`).join('')||'<p>No published knowledge areas.</p>'}</div></section>
-    <section class="profile-section"><h3>Core tasks</h3><div class="task-list">${data.tasks.slice(0,7).map(t=>`<div class="task-item">${escapeHTML(t.task)}</div>`).join('')||'<p>No published tasks.</p>'}</div></section>
-    <section class="profile-section"><h3>Highest-paying states with published estimates</h3><ul>${data.top_states_by_pay.slice(0,8).map(s=>`<li><strong>${escapeHTML(s.state)}</strong> · ${formatValue(s.median_annual_wage,'currency')} median · ${formatValue(s.employment,'number')} employed</li>`).join('')||'<li>No state estimates published.</li>'}</ul></section>
-    <section class="profile-section"><h3>Software and tools</h3><ul>${data.software.slice(0,10).map(s=>`<li>${escapeHTML(s.software_or_tool)} <small>${s.in_demand==='Y'?'· in demand':''}${s.hot_technology==='Y'?' · hot technology':''}</small></li>`).join('')||'<li>No software examples published.</li>'}</ul></section>
-    <section class="profile-section"><h3>Ask about this occupation</h3><div class="suggestion-list"><button class="suggestion-button" data-question="Which states pay ${escapeHTML(o.occupation_title.toLowerCase())} the most?">→ Compare state pay</button><button class="suggestion-button" data-question="What is the job outlook for ${escapeHTML(o.occupation_title.toLowerCase())}?">→ View projections</button><button class="suggestion-button" data-question="What skills do ${escapeHTML(o.occupation_title.toLowerCase())} need?">→ View skills with evidence</button></div></section></div>`;
-}
-async function downloadReport() {
-  if (!state.currentResult) return;
-  const response = await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:state.currentResult.question,dataset:$('#datasetSelect').value})});
-  const blob = await response.blob(); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='careerproof-evidence-report.html'; a.click(); URL.revokeObjectURL(url); toast('Evidence report downloaded');
+    const data = normalizeOccupationPayload(await api(`/api/occupation/${encodeURIComponent(socCode)}`));
+    state.lastOccupation = data;
+    cacheCareer(data.profile);
+    renderOccupation(data);
+  } catch (error) { container.innerHTML = `<div class="refusal-card"><h2>Profile unavailable</h2><p>${escapeHTML(error.message)}</p></div>`; }
 }
 
-document.addEventListener('click', event => {
-  const nav = event.target.closest('.nav-item'); if(nav) navigate(nav.dataset.workspace);
-  const q = event.target.closest('[data-question]'); if(q) analyzeQuestion(q.dataset.question,'auto');
-  const soc = event.target.closest('[data-soc]'); if(soc) loadOccupation(soc.dataset.soc);
-  if(event.target.closest('#openSources')) navigate('sources');
-  if(event.target.closest('#mobileMenu')) $('.sidebar').classList.toggle('open');
-  if(event.target.closest('#downloadReport')) downloadReport();
-  if(event.target.closest('#copyEvidence') && state.currentResult) { navigator.clipboard.writeText(state.currentResult.evidence_id); toast('Evidence ID copied'); }
-  if(event.target.closest('.demo-refusal')) analyzeQuestion("What bachelor's degree should I pursue for the highest pay after becoming a lawyer?",'auto');
-});
-$('#askForm').addEventListener('submit',e=>{e.preventDefault(); analyzeQuestion($('#questionInput').value,$('#datasetSelect').value);});
-let searchTimer; $('#occupationSearch').addEventListener('input',e=>{clearTimeout(searchTimer); searchTimer=setTimeout(()=>searchOccupations(e.target.value),220);});
-$('#questionInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); $('#askForm').requestSubmit();}});
-loadBootstrap().catch(error=>{console.error(error);toast(error.message);});
+function taskImpactColumn(label, className, data) {
+  return `<section class="task-impact-column ${className}"><h4>${escapeHTML(label)} · ${data?.count || 0}</h4>${(data?.tasks || []).slice(0, 8).map((task) => `<div class="task-item">${escapeHTML(task)}</div>`).join("") || `<div class="task-item">No matched task statements in this category.</div>`}</section>`;
+}
+
+function renderOccupation(data) {
+  const p = data.profile;
+  const r = data.resilience_profile;
+  const coverage = data.data_coverage || {};
+  const locations = data.location_opportunity?.rows || [];
+  const tasks = data.tasks || [];
+  const skills = data.skills || [];
+  const degrees = data.related_degrees || [];
+  const container = $("#occupationProfile");
+  container.className = "occupation-profile card";
+  container.innerHTML = `<header class="occupation-hero"><span class="section-kicker">SOC ${escapeHTML(p.soc_code)} · ${escapeHTML(p.category)}</span><h2>${escapeHTML(p.occupation_title)}</h2><p>${escapeHTML(p.description || "")}</p><div class="occupation-actions"><button class="outline-button" data-evidence-soc="${p.soc_code}">Evidence Passport</button><button class="outline-button" data-tray-soc="${p.soc_code}">Compare</button><button class="primary-button" data-save-soc="${p.soc_code}">Save</button></div></header><div class="occupation-kpis"><div class="occupation-kpi"><small>Median wage</small><strong>${money(p.median_wage)}</strong></div><div class="occupation-kpi"><small>Wage range</small><strong>${money(p.wage_p10, true)}–${money(p.wage_p90, true)}</strong></div><div class="occupation-kpi"><small>Growth</small><strong>${pct(p.growth_percent)}</strong></div><div class="occupation-kpi"><small>Annual openings</small><strong>${compactNumber(p.annual_openings)}</strong></div><div class="occupation-kpi"><small>Typical education</small><strong>${escapeHTML(p.education || "Not published")}</strong></div><div class="occupation-kpi"><small>Resilience</small><strong>${escapeHTML(r.overall_label)} · ${Math.round(r.overall_score)}</strong></div></div><nav class="profile-tabs">${occupationProfileTabs().map((tab, index) => `<button class="${index === 0 ? "active" : ""}" data-profile-tab="${tab}">${escapeHTML(titleCase(tab))}</button>`).join("")}</nav><section class="profile-panel active" data-profile-panel="overview"><div class="profile-two-col"><article class="profile-section"><h3>Career in context</h3><p>${escapeHTML(p.description || "")}</p><div class="evidence-box green"><small>Direct official values</small><strong>BLS wage and projection data · O*NET work content</strong><p>Values are joined by the published SOC occupation code.</p></div></article><article class="profile-section"><h3>Decision confidence</h3><div class="evidence-box blue"><small>Source confidence</small><strong>${escapeHTML(data.source_confidence?.label || "High")} · ${data.source_confidence?.score || 94}/100</strong><p>${escapeHTML(data.source_confidence?.reason || "")}</p></div><div class="evidence-box" style="margin-top:7px"><small>Decision confidence</small><strong>${escapeHTML(data.decision_confidence?.label || "Review")}</strong><p>${escapeHTML(data.decision_confidence?.reason || "")}</p></div></article></div><div class="profile-two-col" style="margin-top:10px"><article class="profile-section"><h3>Most important skills</h3>${skills.slice(0, 6).map((skill) => `<div class="skill-row"><span>${escapeHTML(skill.skill_name)}</span><strong>${Number(skill.importance).toFixed(1)}</strong></div>`).join("")}</article><article class="profile-section"><h3>Data-vintage boundary</h3><p>${escapeHTML(data.data_freshness?.summary || "")}</p><ul class="limitation-list">${(data.limitations || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></article></div></section><section class="profile-panel" data-profile-panel="resilience"><div class="resilience-profile-grid"><div class="resilience-overall"><strong>${Math.round(r.overall_score)}</strong><span>${escapeHTML(r.overall_label)} resilience</span><p>${escapeHTML(r.boundary)}</p></div><div class="resilience-bars">${Object.values(r.dimensions || {}).map((dimension) => `<div class="resilience-row"><span>${escapeHTML(dimension.label)}</span><i style="--value:${Math.round(dimension.score)}%"></i><b>${Math.round(dimension.score)}</b></div>`).join("")}<div class="resilience-row"><span>AI augmentation potential</span><i style="--value:${Math.round(r.ai_augmentation_potential)}%"></i><b>${Math.round(r.ai_augmentation_potential)}</b></div></div></div><div class="task-impact-grid" style="margin-top:11px">${taskImpactColumn("Likely human-led", "human", r.ai_task_impact?.human_led)}${taskImpactColumn("AI may augment", "augment", r.ai_task_impact?.ai_augmented)}${taskImpactColumn("Routine exposure", "reduce", r.ai_task_impact?.routine_reduced)}</div><button class="outline-button" data-open-methodology style="margin-top:10px">Open complete model card</button></section><section class="profile-panel" data-profile-panel="skills"><div class="profile-two-col"><article class="profile-section"><h3>O*NET skills</h3>${skills.map((skill) => `<div class="skill-row"><span>${escapeHTML(skill.skill_name)}</span><strong>${Number(skill.importance).toFixed(1)}</strong></div><div class="skill-meter"><span style="width:${Math.min(100, Number(skill.importance) / 5 * 100)}%"></span></div>`).join("")}</article><article class="profile-section"><h3>Tools and technologies</h3>${(data.technologies || []).slice(0, 25).map((item) => `<div class="task-item"><strong>${escapeHTML(item.commodity_title)}</strong>${item.hot_technology ? ' <span class="match-badge">Hot technology</span>' : ""}</div>`).join("") || `<p>No detailed technology records were published for this occupation.</p>`}</article></div></section><section class="profile-panel" data-profile-panel="tasks"><div class="task-impact-grid">${taskImpactColumn("Likely human-led", "human", r.ai_task_impact?.human_led)}${taskImpactColumn("AI may augment", "augment", r.ai_task_impact?.ai_augmented)}${taskImpactColumn("Routine exposure", "reduce", r.ai_task_impact?.routine_reduced)}</div><article class="profile-section" style="margin-top:10px"><h3>Published O*NET task statements</h3>${tasks.map((task) => `<div class="task-item">${escapeHTML(task.task_description)}</div>`).join("")}</article></section><section class="profile-panel" data-profile-panel="locations"><div class="profile-two-col"><article class="profile-section"><h3>Top purchasing-power locations</h3>${locations.slice(0, 12).map((row) => `<div class="skill-row"><span>${escapeHTML(row.label)}</span><strong>${escapeHTML(row.display_value)}</strong></div>`).join("")}</article><article class="profile-section"><h3>How the location score works</h3><p>${escapeHTML(data.location_opportunity?.formula || "")}</p><div class="evidence-box blue"><small>State data</small><strong>${locations.length} published state estimates ranked</strong><p>Suppressed values remain missing. CareerProof never fills them with invented numbers.</p></div><button class="primary-button" data-location-soc="${p.soc_code}" style="margin-top:10px">Open Location Intelligence</button></article></div></section><section class="profile-panel" data-profile-panel="degrees"><article class="profile-section"><h3>Related instructional programs</h3><p>These are NCES/BLS crosswalk relationships. They do not prove a legal requirement or placement outcome.</p><div class="degree-career-grid">${degrees.map((degree) => `<button class="degree-career-card" data-degree-code="${degree.cip_code}"><small>CIP ${escapeHTML(degree.cip_code)}</small><h3>${escapeHTML(degree.cip_title)}</h3><p>Open official relationship map →</p></button>`).join("") || `<p>No related program rows were published.</p>`}</div></article></section><section class="profile-panel" data-profile-panel="coverage"><div class="profile-two-col"><article class="profile-section"><h3>Data coverage</h3><div class="coverage-meter"><div class="coverage-ring" style="--score:${Math.round(coverage.percent || 0)}"><div><strong>${Math.round(coverage.percent || 0)}%</strong><small>coverage</small></div></div><div class="coverage-components">${Object.entries(coverage.components || {}).map(([key, component]) => `<span>${component.available ? "✓" : "—"} ${escapeHTML(titleCase(key))} · ${escapeHTML(component.year || "No year")}</span>`).join("")}</div></div></article><article class="profile-section"><h3>Source lineage</h3>${(data.source_lineage || []).map((source) => `<div class="task-item"><strong>${escapeHTML(source.dataset)}</strong><br>${escapeHTML(source.value)} · ${escapeHTML(source.year)} · ${source.direct ? "Direct official value" : "Transformed for display"}</div>`).join("")}</article></div></section>`;
+}
+
+async function searchDegrees() {
+  const query = $("#degreeSearch").value.trim();
+  if (!query) return;
+  try {
+    const data = await api(`/api/degrees?query=${encodeURIComponent(query)}&limit=25`);
+    const results = data.results || [];
+    $("#degreeResults").innerHTML = results.map((item) => `<button class="degree-result" data-degree-code="${item.cip_code}"><small>CIP ${escapeHTML(item.cip_code)}</small><strong>${escapeHTML(item.cip_title)}</strong><span>${formatNumber(item.related_occupation_count)} related occupations</span></button>`).join("") || `<div class="empty-state card"><p>No degree programs matched.</p></div>`;
+  } catch (error) { showToast(error.message); }
+}
+
+async function openDegree(cipCode) {
+  const container = $("#degreeDetail");
+  container.innerHTML = `<div class="loading-card"><span class="spinner"></span><p>Loading official degree relationships…</p></div>`;
+  try {
+    const data = normalizeDegreePayload(await api(`/api/degree/${encodeURIComponent(cipCode)}`));
+    (data.related_careers || []).forEach(cacheCareer);
+    container.innerHTML = `<span class="section-kicker">Official CIP ${escapeHTML(data.cip_code)}</span><h2>${escapeHTML(data.cip_title)}</h2><p>${escapeHTML(data.boundary)}</p><div class="evidence-box blue"><small>Broad degree-field earnings</small><strong>${data.field_earnings?.median_earnings ? money(data.field_earnings.median_earnings) : "No direct ACS field estimate mapped"}</strong><p>${escapeHTML(data.field_earnings?.disclosure || "Broad Census fields are shown only when the mapping is supported.")}</p></div><h3>Related occupations</h3><div class="degree-career-grid">${(data.related_careers || []).map((item) => `<article class="degree-career-card"><small>SOC ${escapeHTML(item.soc_code)}</small><h3>${escapeHTML(item.occupation_title)}</h3><strong>${money(item.median_wage)}</strong><p>${pct(item.growth_percent)} growth · ${escapeHTML(item.resilience_label)}</p><button class="soft-button" data-open-soc="${item.soc_code}">Open profile</button></article>`).join("")}</div>`;
+  } catch (error) { container.innerHTML = `<div class="refusal-card"><h2>Degree pathway unavailable</h2><p>${escapeHTML(error.message)}</p></div>`; }
+}
+
+async function runLocation(socOverride = null) {
+  const button = $("#runLocation");
+  setButtonLoading(button, true, "Ranking locations…");
+  try {
+    let career;
+    if (socOverride) career = state.occupationCache.get(String(socOverride)) || { soc_code: socOverride };
+    else career = await resolveCareerInput($("#locationCareer"));
+    const data = normalizeLocationPayload(await api(`/api/state-opportunity/${encodeURIComponent(career.soc_code)}?limit=51`));
+    renderLocation(data);
+  } catch (error) { showToast(error.message); }
+  finally { setButtonLoading(button, false); }
+}
+
+function renderLocation(data) {
+  const rows = data.rows || [];
+  const top = rows.slice(0, 3);
+  $("#locationResults").innerHTML = `<article class="location-results-card card"><header class="location-summary"><div><span class="section-kicker">Cost-of-living-adjusted opportunity</span><h2>${escapeHTML(data.headline)}</h2><p>${escapeHTML(data.boundary)}</p></div><div class="heading-badge"><span>Formula</span><strong>Inspectable</strong><small>${escapeHTML(data.formula)}</small></div></header><div class="location-top-grid">${top.map((row, index) => `<article class="location-card"><span class="section-kicker">Rank ${index + 1}</span><h3>${escapeHTML(row.label)}</h3><span class="location-score">${Number(row.opportunity_score).toFixed(1)}</span><div class="location-stat"><span>Nominal wage</span><strong>${money(row.nominal_wage)}</strong></div><div class="location-stat"><span>Purchasing power</span><strong>${money(row.purchasing_power_wage)}</strong></div><div class="location-stat"><span>Employment</span><strong>${compactNumber(row.employment)}</strong></div><div class="location-stat"><span>Concentration</span><strong>${Number(row.location_quotient || 0).toFixed(2)}</strong></div><div class="location-stat"><span>Confidence</span><strong>${escapeHTML(row.confidence)}</strong></div></article>`).join("")}</div><div class="location-table-wrap"><table class="location-table"><thead><tr><th>Rank</th><th>State</th><th>Nominal wage</th><th>Purchasing power</th><th>Employment</th><th>Location quotient</th><th>RPP</th><th>Confidence</th><th>Derived score</th></tr></thead><tbody>${rows.map((row, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(row.label)}</td><td>${money(row.nominal_wage)}</td><td>${money(row.purchasing_power_wage)}</td><td>${formatNumber(row.employment)}</td><td>${Number(row.location_quotient || 0).toFixed(2)}</td><td>${Number(row.regional_price_parity || 0).toFixed(1)}</td><td>${escapeHTML(row.confidence)}</td><td>${Number(row.opportunity_score).toFixed(1)}</td></tr>`).join("")}</tbody></table></div><div class="data-vintage-inline"><span>◷</span><div>${escapeHTML(data.freshness?.summary || "Source periods are disclosed.")}</div></div></article>`;
+  $("#locationResults").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderSources() {
+  const sources = state.bootstrap?.sources || [];
+  $("#sourceCatalog").innerHTML = sources.map((source) => `<article class="source-card"><small>${escapeHTML(source.agency)} · ${escapeHTML(source.publication_date || source.year || "Published snapshot")}</small><h3>${escapeHTML(source.name)}</h3><p>${escapeHTML(source.description)}</p><div class="source-meta"><span>${escapeHTML(source.license || "Public data")}</span><span>${escapeHTML(source.direct ? "Direct official values" : "Official values transformed for display")}</span></div>${source.url ? `<a href="${escapeHTML(source.url)}" target="_blank" rel="noreferrer">Open official source ↗</a>` : ""}</article>`).join("");
+}
+
+function renderQuestionLibrary() {
+  const catalog = state.bootstrap?.question_catalog || [];
+  const grouped = Object.groupBy ? Object.groupBy(catalog, (item) => item.category || "Questions") : catalog.reduce((acc, item) => { (acc[item.category || "Questions"] ||= []).push(item); return acc; }, {});
+  $("#questionLibrary").innerHTML = Object.entries(grouped).map(([category, items]) => `<article class="question-group"><h3>${escapeHTML(category)}</h3><p>${items.length} supported examples</p>${items.map((item) => `<button data-quick-question="${escapeHTML(item.question)}">${escapeHTML(item.question)}</button>`).join("")}</article>`).join("");
+}
+
+async function loadModelCard() {
+  if (state.trustLoaded.model) return;
+  const model = normalizeModelPayload(await api("/api/resilience-model"));
+  state.modelCard = model;
+  renderModelCard(model, $("#modelCard"));
+  state.trustLoaded.model = true;
+}
+
+function renderModelCard(model, container) {
+  container.innerHTML = `<article class="model-overview card"><span class="section-kicker">CareerProof-derived method · version ${escapeHTML(model.version)}</span><h2>${escapeHTML(model.name)}</h2><p>${escapeHTML(model.purpose)}</p><div class="evidence-box blue"><small>Exact formula</small><strong>${escapeHTML(model.formula)}</strong><p>${escapeHTML(model.normalization)}</p></div></article><div class="model-dimension-grid">${(model.dimensions || []).map((dimension) => `<article class="model-dimension-card"><header><h3>${escapeHTML(dimension.label)}</h3><b>${Number(dimension.weight).toFixed(0)}%</b></header><p>${escapeHTML(dimension.description)}</p><div class="keyword-cloud">${(dimension.signals || []).slice(0, 12).map((signal) => `<span>${escapeHTML(signal)}</span>`).join("")}</div></article>`).join("")}</div><div class="profile-two-col"><article class="profile-section"><h3>Missing-data policy</h3><p>${escapeHTML(model.missing_data_policy)}</p><h3>Task-impact method</h3><p>${escapeHTML(model.task_impact_method)}</p></article><article class="profile-section"><h3>Known limitations</h3><ul class="limitation-list">${(model.known_limitations || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></article></div><article class="profile-section"><h3>Sensitivity presets</h3><div class="rubric-grid">${Object.entries(model.sensitivity_presets || {}).map(([key, weights]) => `<div class="rubric-card"><strong>${escapeHTML(titleCase(key))}</strong><p>${Object.entries(weights).map(([name, value]) => `${escapeHTML(titleCase(name))} ${value}%`).join(" · ")}</p></div>`).join("")}</div></article>`;
+}
+
+async function loadDataQuality() {
+  if (state.trustLoaded.quality) return;
+  const data = normalizeQualityPayload(await api("/api/data-quality"));
+  $("#dataQuality").innerHTML = `<article class="quality-overview card"><span class="section-kicker">Live bundled-file audit</span><h2>Coverage is measured, not assumed</h2><p>Missing and suppressed values remain missing. CareerProof shows where a result is strong, partial, or limited.</p></article><div class="quality-grid">${(data.checks || []).map((check) => `<article class="quality-card"><h3>${escapeHTML(check.name)}</h3><strong>${Number(check.coverage_percent).toFixed(1)}%</strong><div class="quality-meter"><span style="width:${check.coverage_percent}%"></span></div><p>${formatNumber(check.available)} available · ${formatNumber(check.missing)} missing · ${escapeHTML(check.status)}</p></article>`).join("")}</div><div class="profile-two-col"><article class="profile-section"><h3>State suppression monitor</h3>${Object.entries(data.state_suppression || {}).map(([key, value]) => `<div class="skill-row"><span>${escapeHTML(titleCase(key))}</span><strong>${formatNumber(value)}</strong></div>`).join("")}</article><article class="profile-section"><h3>Quality rules</h3><ul class="limitation-list">${(data.rules || []).map((rule) => `<li>${escapeHTML(rule)}</li>`).join("")}</ul></article></div><div class="data-vintage-inline"><span>◷</span><div><strong>Vintage alignment:</strong> ${escapeHTML(data.vintage_alignment?.summary || "")}</div></div>`;
+  state.trustLoaded.quality = true;
+}
+
+function activateTrustTab(name) {
+  $$("[data-trust-tab]").forEach((button) => button.classList.toggle("active", button.dataset.trustTab === name));
+  $$(".trust-tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `trust-${name}`));
+  loadTrustTab(name);
+}
+
+async function loadTrustTab(name) {
+  try {
+    if (name === "model") await loadModelCard();
+    if (name === "quality") await loadDataQuality();
+    if (name === "diagnostic" && !state.trustLoaded.diagnostic) runDiagnostic();
+  } catch (error) { showToast(error.message); }
+}
+
+async function runDiagnostic() {
+  const container = $("#diagnosticResults");
+  container.innerHTML = `<div class="loading-card card"><span class="spinner"></span><p>Running live source, routing, trust, and feasibility checks…</p></div>`;
+  try {
+    const data = normalizeDiagnosticPayload(await api("/api/diagnostic"));
+    state.trustLoaded.diagnostic = true;
+    const checks = data.checks || [];
+    const routing = data.routing_regression || [];
+    const rubric = data.judge_alignment || {};
+    container.innerHTML = `<div class="diagnostic-grid"><section class="diagnostic-card card"><span class="section-kicker">${data.passed ? "All checks passed" : "Action required"}</span><h3>${checks.filter((item) => item.passed).length}/${checks.length} live checks passed</h3>${checks.map((check) => `<div class="check-row"><span class="check-icon ${check.passed ? "" : "fail"}">${check.passed ? "✓" : "!"}</span><strong>${escapeHTML(check.name)}</strong><span>${escapeHTML(check.value)}</span></div>`).join("")}</section><section class="diagnostic-card card"><span class="section-kicker">Question routing regression</span><h3>${routing.filter((item) => item.passed).length}/${routing.length} supported routes passed</h3><div class="location-table-wrap"><table class="routing-table"><thead><tr><th>Question</th><th>Expected</th><th>Actual</th><th>Result</th></tr></thead><tbody>${routing.map((item) => `<tr><td>${escapeHTML(item.question)}</td><td>${escapeHTML(item.expected)}</td><td>${escapeHTML(item.actual)}</td><td>${item.passed ? "✓" : "!"}</td></tr>`).join("")}</tbody></table></div></section></div><section class="diagnostic-card card" style="margin-top:8px"><span class="section-kicker">Participant-facing rubric alignment</span><div class="rubric-grid">${Object.entries(rubric).map(([key, item]) => `<article class="rubric-card"><strong>${escapeHTML(titleCase(key))}</strong><span>${item.weight}%</span><p>${escapeHTML(item.evidence)}</p></article>`).join("")}</div></section>`;
+  } catch (error) { container.innerHTML = `<div class="refusal-card"><h2>Diagnostic failed</h2><p>${escapeHTML(error.message)}</p></div>`; }
+}
+
+async function openMethodology() {
+  const modal = $("#methodologyModal");
+  modal.classList.add("open"); modal.setAttribute("aria-hidden", "false");
+  $("#methodologyContent").innerHTML = `<div class="loading-card"><span class="spinner"></span><p>Loading transparent model card…</p></div>`;
+  try {
+    const model = state.modelCard || normalizeModelPayload(await api("/api/resilience-model"));
+    state.modelCard = model;
+    renderModelCard(model, $("#methodologyContent"));
+  } catch (error) { $("#methodologyContent").innerHTML = `<p>${escapeHTML(error.message)}</p>`; }
+}
+
+function careerFromCache(socCode) {
+  return state.occupationCache.get(String(socCode)) || state.home?.path?.results?.find((item) => String(item.soc_code) === String(socCode)) || state.lastPath?.results?.find((item) => String(item.soc_code) === String(socCode)) || state.lastCompare?.results?.find((item) => String(item.soc_code) === String(socCode));
+}
+
+function evidenceForCareer(item) {
+  const profile = item.resilience_profile || (
+    state.lastOccupation?.profile?.soc_code === item.soc_code
+      ? state.lastOccupation.resilience_profile
+      : null
+  );
+  const contributions = item.contributions || {};
+  return `<div class="evidence-kpi-grid"><div class="evidence-kpi"><small>Occupation code</small><strong>${escapeHTML(item.soc_code)}</strong></div><div class="evidence-kpi"><small>Median wage</small><strong>${money(item.median_wage)}</strong></div><div class="evidence-kpi"><small>Projected growth</small><strong>${pct(item.growth_percent)}</strong></div><div class="evidence-kpi"><small>Resilience model</small><strong>v${escapeHTML(profile?.model_version || "1.0.0")}</strong></div></div><div class="evidence-grid" style="margin-top:8px"><section class="evidence-section"><h3>Direct official values</h3><ul><li>BLS OEWS 2025 wage and employment snapshot</li><li>BLS 2024–2034 employment projections</li><li>O*NET 30.3 skills, tasks, technologies, and job zone</li><li>Exact SOC-code joins across source files</li></ul></section><section class="evidence-section"><h3>CareerProof-derived values</h3><ul><li>Fit score: weighted normalized components selected by the user</li><li>Resilience: six documented dimensions from O*NET text signals</li><li>Location opportunity: published wage, employment, concentration, RPP, and estimate quality</li><li>Task impact: keyword grouping for explanation, not a job-loss forecast</li></ul></section><section class="evidence-section"><h3>Score contributions</h3>${Object.entries(contributions).map(([key, value]) => `<div class="skill-row"><span>${escapeHTML(WEIGHT_META[key]?.label || titleCase(key))}</span><strong>${Number(value).toFixed(2)}</strong></div>`).join("") || `<p>Open this career from Path Builder or Compare Lab to see user-specific score contributions.</p>`}</section><section class="evidence-section"><h3>Confidence and limits</h3><p><strong>Source confidence:</strong> ${escapeHTML(item.source_confidence?.label || "High for direct official values")}</p><p><strong>Decision confidence:</strong> ${escapeHTML(item.decision_confidence?.label || "Depends on geography and data completeness")}</p><p>No career is permanently AI-proof. CareerProof does not predict an individual's outcome.</p></section></div><div class="data-vintage-inline"><span>◷</span><div>BLS wage data use May 2025. Projections cover 2024–2034. O*NET work content uses version 30.3. BEA RPP uses 2024. These are different measurement periods.</div></div>`;
+}
+
+function openCareerEvidence(socCode) {
+  const item = careerFromCache(socCode);
+  if (!item) { showToast("Open the career profile first so its evidence can be assembled."); return; }
+  $("#evidenceTitle").textContent = item.occupation_title;
+  $("#evidenceContent").innerHTML = evidenceForCareer(item);
+  const modal = $("#evidenceModal"); modal.classList.add("open"); modal.setAttribute("aria-hidden", "false");
+}
+
+function openAnswerEvidence(data) {
+  const e = data.evidence || {};
+  $("#evidenceTitle").textContent = data.headline || "Answer evidence";
+  $("#evidenceContent").innerHTML = `<div class="evidence-kpi-grid"><div class="evidence-kpi"><small>Evidence ID</small><strong>${escapeHTML(e.evidence_id || "—")}</strong></div><div class="evidence-kpi"><small>Rows used</small><strong>${formatNumber(data.analysis?.rows_used || 0)}</strong></div><div class="evidence-kpi"><small>Rows excluded</small><strong>${formatNumber(data.analysis?.suppressed_or_excluded || 0)}</strong></div><div class="evidence-kpi"><small>Confidence</small><strong>${escapeHTML(e.confidence?.label || "Review")}</strong></div></div><div class="evidence-grid" style="margin-top:8px"><section class="evidence-section"><h3>Source lineage</h3><p>${escapeHTML((e.source_names || []).join(" + "))}</p>${(e.source_urls || []).map((url) => `<a class="source-link" href="${escapeHTML(url)}" target="_blank" rel="noreferrer">${escapeHTML(url)}</a>`).join("")}</section><section class="evidence-section"><h3>Query plan</h3><pre>${escapeHTML(JSON.stringify(data.query_plan || {}, null, 2))}</pre></section><section class="evidence-section"><h3>Calculation</h3><p>${escapeHTML(data.analysis?.calculation || "")}</p><p><strong>Dataset note:</strong> ${escapeHTML(e.dataset_note || "")}</p></section><section class="evidence-section"><h3>Limitations</h3><ul>${(data.limitations || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></section></div>`;
+  const modal = $("#evidenceModal"); modal.classList.add("open"); modal.setAttribute("aria-hidden", "false");
+}
+
+function closeAllOverlays() {
+  $$(".modal-shell.open").forEach((modal) => { modal.classList.remove("open"); modal.setAttribute("aria-hidden", "true"); });
+  $("#savedDrawer").classList.remove("open"); $("#savedDrawer").setAttribute("aria-hidden", "true");
+  $("#judgeOverlay").classList.remove("open"); $("#judgeOverlay").setAttribute("aria-hidden", "true");
+}
+
+function saveCareerBySoc(socCode) {
+  const item = careerFromCache(socCode);
+  if (!item) { showToast("Open this career first, then save it."); return; }
+  if (!state.saved.some((saved) => String(saved.soc_code) === String(socCode))) {
+    state.saved.push({ soc_code: item.soc_code, occupation_title: item.occupation_title, median_wage: item.median_wage, resilience_label: item.resilience_label, category: item.category });
+    safeStorage.setItem("careerproof-saved", JSON.stringify(state.saved));
+    showToast(`${item.occupation_title} saved.`);
+  } else showToast(`${item.occupation_title} is already saved.`);
+  renderSavedCounts(); renderSavedDrawer(); renderSavedWorkspace();
+}
+
+function removeSaved(socCode) {
+  state.saved = state.saved.filter((item) => String(item.soc_code) !== String(socCode));
+  safeStorage.setItem("careerproof-saved", JSON.stringify(state.saved));
+  renderSavedCounts(); renderSavedDrawer(); renderSavedWorkspace();
+}
+
+function renderSavedCounts() {
+  $("#savedCount").textContent = state.saved.length;
+  $("#savedNavCount").textContent = state.saved.length;
+}
+
+function renderSavedDrawer() {
+  const container = $("#savedList");
+  container.innerHTML = state.saved.length ? state.saved.map((item) => `<article class="saved-item"><div><strong>${escapeHTML(item.occupation_title)}</strong><small>${escapeHTML(item.category || "Occupation")} · ${money(item.median_wage, true)} · ${escapeHTML(item.resilience_label || "Resilience profile")}</small></div><button data-remove-saved="${item.soc_code}" aria-label="Remove ${escapeHTML(item.occupation_title)}">×</button></article>`).join("") : `<div class="empty-state"><p>No careers saved yet.</p></div>`;
+}
+
+function renderSavedWorkspace() {
+  const list = $("#savedWorkspaceList");
+  if (!list) return;
+  list.innerHTML = state.saved.length ? state.saved.map((item) => `<article class="saved-workspace-item"><div><strong>${escapeHTML(item.occupation_title)}</strong><small>${money(item.median_wage, true)} · ${escapeHTML(item.resilience_label || "Resilience profile")}</small></div><div><button data-open-soc="${item.soc_code}">Open</button><button data-tray-soc="${item.soc_code}">Compare</button><button data-remove-saved="${item.soc_code}">Remove</button></div></article>`).join("") : `<div class="empty-state"><p>Save careers from Path Builder, Compare Lab, Career Universe, or an occupation profile.</p></div>`;
+  const portfolio = state.lastPath?.portfolio || {};
+  $("#savedPortfolio").innerHTML = [["Primary path", portfolio.primary_path], ["Safer backup", portfolio.safer_backup], ["High upside", portfolio.high_upside_option], ["Fast entry", portfolio.fast_entry_option]].map(([label, item]) => item ? `<button class="portfolio-item" data-open-soc="${item.soc_code}"><small>${escapeHTML(label)}</small><strong>${escapeHTML(item.occupation_title)}</strong><span>${Math.round(item.score)} fit · ${escapeHTML(item.resilience_label)}</span></button>` : `<div class="portfolio-item"><small>${escapeHTML(label)}</small><strong>Run Path Builder</strong><span>to generate this option</span></div>`).join("");
+  $("#decisionNotes").value = state.decisionNotes;
+}
+
+function addToComparisonTray(socCode) {
+  const item = careerFromCache(socCode) || state.saved.find((saved) => String(saved.soc_code) === String(socCode));
+  if (!item) { showToast("Open this career first so CareerProof can add it."); return; }
+  if (state.comparisonTray.has(String(socCode))) state.comparisonTray.delete(String(socCode));
+  else if (state.comparisonTray.size < 4) state.comparisonTray.set(String(socCode), item);
+  else { showToast("Compare up to four careers at a time."); return; }
+  renderComparisonTray();
+}
+
+function renderComparisonTray() {
+  const tray = $("#comparisonTray");
+  const items = [...state.comparisonTray.values()];
+  tray.classList.toggle("open", items.length > 0);
+  tray.setAttribute("aria-hidden", items.length ? "false" : "true");
+  $("#comparisonTrayItems").innerHTML = items.map((item) => `<span class="tray-item"><span>${escapeHTML(item.occupation_title)}</span><button data-remove-tray="${item.soc_code}" aria-label="Remove ${escapeHTML(item.occupation_title)}">×</button></span>`).join("");
+  $("#comparisonTrayCount").textContent = items.length;
+}
+
+function openTrayComparison() {
+  const items = [...state.comparisonTray.values()];
+  if (items.length < 2) { showToast("Add at least two careers."); return; }
+  state.compareValues = ["", "", "", ""];
+  state.compareResolved = [null, null, null, null];
+  items.forEach((item, index) => { state.compareValues[index] = item.occupation_title; state.compareResolved[index] = item; });
+  renderCompareSlots();
+  switchWorkspace("compare");
+  setTimeout(runCompare, 100);
+}
+
+function exportSavedPlan() {
+  const profile = state.lastPath?.interpretation?.normalized_profile || getStoredProfile();
+  const path = state.lastPath;
+  const saved = state.saved;
+  const generated = new Date().toLocaleString();
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>CareerProof AI Plan</title><style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;color:#14213d;line-height:1.5}h1{font-size:38px}h2{margin-top:32px;border-bottom:2px solid #4169e1;padding-bottom:8px}.card{border:1px solid #ccd5e6;border-radius:10px;padding:16px;margin:10px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.muted{color:#61708b}.tag{display:inline-block;padding:4px 7px;background:#edf2ff;border-radius:6px;margin:3px}.warning{background:#fff8e6;border-left:4px solid #e5a423;padding:12px}@media print{button{display:none}}</style></head><body><h1>CareerProof AI Career Plan</h1><p class="muted">Generated ${escapeHTML(generated)} · AI interprets. Code calculates. Evidence verifies. You decide.</p><div class="warning">No career is permanently AI-proof. This report is a decision aid built from bundled official data and transparent CareerProof-derived metrics.</div><h2>User goals</h2><div class="card"><p><strong>Interests:</strong> ${escapeHTML((profile.interests || []).join(", "))}</p><p><strong>Skills:</strong> ${escapeHTML((profile.skills || []).join(", "))}</p><p><strong>Education ceiling:</strong> ${escapeHTML(profile.education_max || "No limit")}</p><p><strong>Location:</strong> ${escapeHTML(profile.preferred_state || "Any state")}</p><p><strong>Salary target:</strong> ${profile.salary_goal ? money(profile.salary_goal) : "No minimum"}</p></div><h2>Recommended portfolio</h2><div class="grid">${path ? [["Primary", path.portfolio?.primary_path], ["Safer backup", path.portfolio?.safer_backup], ["High upside", path.portfolio?.high_upside_option], ["Fast entry", path.portfolio?.fast_entry_option]].map(([label, item]) => item ? `<div class="card"><small>${escapeHTML(label)}</small><h3>${escapeHTML(item.occupation_title)}</h3><p>${money(item.median_wage)} median · ${pct(item.growth_percent)} growth · ${escapeHTML(item.resilience_label)} resilience</p></div>` : "").join("") : `<div class="card">Run Path Builder to generate a portfolio.</div>`}</div><h2>Saved careers</h2>${saved.map((item) => `<div class="card"><h3>${escapeHTML(item.occupation_title)}</h3><p>${money(item.median_wage)} · ${escapeHTML(item.resilience_label || "")}</p></div>`).join("") || `<p>No careers saved.</p>`}<h2>Decision journal</h2><div class="card">${escapeHTML(state.decisionNotes || "No notes recorded.").replaceAll("\n", "<br>")}</div><h2>Evidence and limitations</h2><ul><li>BLS May 2025 wage and employment snapshots</li><li>BLS 2024–2034 employment projections</li><li>O*NET 30.3 skills, tasks, technology, and job-zone content</li><li>BEA 2024 Regional Price Parities</li><li>NCES/BLS degree-to-career relationships</li></ul><p class="muted">CareerProof-derived fit, resilience, stability, and opportunity scores are transparent decision aids. They are not government ratings, predictions, or guarantees.</p></body></html>`;
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url; anchor.download = "careerproof-career-plan.html"; anchor.click();
+  URL.revokeObjectURL(url);
+  showToast("Career plan exported as HTML. Open it in a browser to print or save as PDF.");
+}
+
+async function startJudgeMode() {
+  const overlay = $("#judgeOverlay");
+  overlay.classList.add("open"); overlay.setAttribute("aria-hidden", "false");
+  $("#judgeContent").innerHTML = `<div class="loading-card"><span class="spinner"></span><p>Preparing the verified demo state…</p></div>`;
+  try {
+    if (!state.judgeData) state.judgeData = normalizeJudgePayload(await api("/api/judge-demo"));
+    state.judgeStep = 0;
+    renderJudgeProgress(); renderJudgeStep();
+  } catch (error) { $("#judgeContent").innerHTML = `<p>${escapeHTML(error.message)}</p>`; }
+}
+
+function renderJudgeProgress() {
+  const steps = state.judgeData?.steps || [];
+  $("#judgeProgress").style.gridTemplateColumns = `repeat(${steps.length},1fr)`;
+  $("#judgeProgress").innerHTML = steps.map((_, index) => `<span class="${index <= state.judgeStep ? "active" : ""}"></span>`).join("");
+  $("#judgeStepLabel").textContent = `${state.judgeStep + 1} / ${steps.length}`;
+  $("#judgePrev").disabled = state.judgeStep === 0;
+  $("#judgeNext").innerHTML = state.judgeStep === steps.length - 1 ? `<span>Finish</span><b>✓</b>` : `<span>Next</span><b>→</b>`;
+}
+
+function judgeMiniCareer(item, index) {
+  return `<article class="judge-mini-card"><span class="section-kicker">Rank ${index + 1}</span><h4>${escapeHTML(item.occupation_title)}</h4><strong>${Number(item.score).toFixed(1)}</strong><small>${money(item.median_wage, true)} · ${escapeHTML(item.resilience_label)}</small></article>`;
+}
+
+function renderJudgeStep() {
+  const data = state.judgeData;
+  const step = data.steps[state.judgeStep];
+  $("#judgeTitle").textContent = step.title;
+  let visual = "";
+  if (step.id === "purpose") {
+    visual = `<div class="big-stat"><span>Real user problem</span><strong>1 decision</strong><p>What career fits me, pays well, has future demand, and is difficult for AI to fully replace?</p></div>`;
+  } else if (step.id === "interpret") {
+    const interpretation = data.interpretation;
+    visual = `<div class="interpretation-card"><span class="section-kicker">Editable before calculation</span><h3>${escapeHTML(interpretation.goal)}</h3><div class="interpretation-grid"><section class="interpretation-section"><h3>Constraints</h3>${interpretation.constraints.map((item) => `<p><strong>${escapeHTML(item.label)}:</strong> ${escapeHTML(item.value)}</p>`).join("")}</section><section class="interpretation-section"><h3>Priorities</h3>${interpretation.priorities.slice(0, 5).map((item) => `<div class="priority-row"><span>${escapeHTML(item.label)}</span><b>${item.weight}%</b></div>`).join("")}</section></div></div>`;
+  } else if (step.id === "path") {
+    visual = `<div class="judge-mini-cards">${(data.path_builder.results || []).slice(0, 3).map(judgeMiniCareer).join("")}</div><div class="evidence-box green" style="margin-top:9px"><small>Hard constraint gate</small><strong>${data.path_builder.excluded_by_hard_constraints?.count || 0} careers excluded before ranking</strong><p>Education is treated as a hard ceiling in this demonstration.</p></div>`;
+  } else if (step.id === "challenge") {
+    const top = data.path_builder.results[0];
+    visual = `<div class="challenge-panel"><h4>Challenge ${escapeHTML(top.occupation_title)}</h4><div class="challenge-grid"><section><h5>Weakest evidence</h5><p>${escapeHTML(top.challenge?.weakest_evidence || "")}</p><h5>Assumptions</h5><ul>${(top.challenge?.assumptions || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></section><section><h5>Strongest challenger</h5><p>${escapeHTML(top.challenge?.strongest_challenger ? `${top.challenge.strongest_challenger.occupation_title}: ${top.challenge.strongest_challenger.why_it_could_win}` : "No challenger")}</p><h5>What changes the result?</h5><p>${escapeHTML(data.path_builder.what_would_change_recommendation?.[0]?.impact || "Change the priority weights.")}</p></section></div></div>`;
+  } else if (step.id === "compare") {
+    visual = `<div class="judge-mini-cards">${(data.comparison.results || []).slice(0, 3).map(judgeMiniCareer).join("")}</div><div class="tradeoff-callout">${escapeHTML(data.comparison.tradeoff_summary?.plain_language || "")}</div><div class="sensitivity-list" style="margin-top:8px">${(data.comparison.sensitivity || []).slice(0, 4).map((item) => `<div class="sensitivity-row"><span>${escapeHTML(item.label)}</span><strong>${escapeHTML(item.top_occupation)}</strong><b>${Number(item.top_score).toFixed(1)}</b></div>`).join("")}</div>`;
+  } else if (step.id === "proof") {
+    const e = data.verified_answer.evidence || {};
+    visual = `<div class="evidence-kpi-grid"><div class="evidence-kpi"><small>Official sources</small><strong>${escapeHTML((e.source_names || []).join(" + "))}</strong></div><div class="evidence-kpi"><small>Rows used</small><strong>${data.verified_answer.analysis?.rows_used || 0}</strong></div><div class="evidence-kpi"><small>Excluded</small><strong>${data.verified_answer.analysis?.suppressed_or_excluded || 0}</strong></div><div class="evidence-kpi"><small>Evidence ID</small><strong>${escapeHTML(e.evidence_id || "")}</strong></div></div><div class="evidence-section" style="margin-top:8px"><h3>Visible calculation</h3><p>${escapeHTML(data.verified_answer.analysis?.calculation || "")}</p></div>`;
+  } else if (step.id === "refusal") {
+    visual = `<div class="refusal-card"><span class="refusal-badge">Safe refusal</span><h2>${escapeHTML(data.safe_refusal.headline)}</h2><p>${escapeHTML(data.safe_refusal.explanation)}</p><div class="suggestion-list">${(data.safe_refusal.suggestions || []).slice(0, 3).map((item) => `<button>${escapeHTML(item)}</button>`).join("")}</div></div>`;
+  }
+  $("#judgeContent").innerHTML = `<div class="judge-story"><div class="judge-story-copy"><span class="section-kicker">Step ${state.judgeStep + 1}</span><h3>${escapeHTML(step.title)}</h3><p>${escapeHTML(step.copy)}</p><div class="evidence-box blue"><small>Why this matters to judges</small><strong>${escapeHTML(step.id === "purpose" ? "Clear problem and usefulness" : step.id === "interpret" ? "Meaningful AI assistance with human control" : step.id === "path" ? "Working prototype and verified calculations" : step.id === "challenge" ? "Trust through inspectable uncertainty" : step.id === "compare" ? "Data and AI quality" : step.id === "proof" ? "Visible evidence" : "Unsupported-question refusal")}</strong></div></div><div class="judge-story-visual">${visual}</div></div>`;
+  renderJudgeProgress();
+}
+
+function applyDemoProfile() {
+  $("#profileText").value = "I like electronics and programming, but I am also interested in law. I want to stay near Maryland, earn at least $90,000, and stop at a bachelor's degree.";
+  state.selectedInterests = new Set(["Electronics", "Programming", "Law"]);
+  state.skills = ["Python", "Arduino", "Writing", "Problem Solving"];
+  state.workEnvironment = new Set(["Hands-on", "Office or analytical", "People-facing"]);
+  state.pathWeights = { interest_fit: 24, resilience: 28, salary: 18, growth: 8, openings: 8, education: 7, location: 4, stability: 3 };
+  $("#pathEducation").value = "Bachelor's degree"; $("#pathState").value = "Maryland"; $("#pathSalary").value = 90000;
+  $("#hardEducation").checked = true; $("#hardSalary").checked = false; $("#hardLocation").checked = false; $("#willingRelocate").checked = false;
+  renderInterestChips(); renderSkillTags(); renderWeightControls("pathWeights", state.pathWeights, updatePathWeightTotal); updatePathWeightTotal();
+  $$("[data-work-environment]").forEach((button) => button.classList.toggle("selected", state.workEnvironment.has(button.dataset.workEnvironment)));
+}
+
+function resetJudgeDemo() {
+  applyDemoProfile();
+  state.comparisonTray.clear(); renderComparisonTray();
+  state.judgeStep = 0; renderJudgeStep();
+  showToast("Judge demo reset to the verified starting profile.");
+}
+
+function resetExperience() {
+  applyDemoProfile();
+  state.lastPath = null;
+  state.lastInterpretation = null;
+  state.lastCompare = null;
+  state.lastOccupation = null;
+  state.comparisonTray.clear();
+  state.compareValues = ["Electrical Engineers", "Nuclear Engineers", "Lawyers", ""];
+  state.compareResolved = [null, null, null, null];
+  state.compareWeights = { ...DEFAULT_COMPARE_WEIGHTS };
+  state.judgeStep = 0;
+  safeStorage.removeItem("careerproof-last-path");
+  renderComparisonTray();
+  renderCompareSlots();
+  renderWeightControls("compareWeights", state.compareWeights);
+  $("#pathInterpretation").classList.add("hidden");
+  $("#pathForm").classList.remove("hidden");
+  $("#pathResults").innerHTML = `<div class="empty-intelligence"><span>⌁</span><h2>Your evidence-backed options will appear here</h2><p>Review the interpretation first. Then CareerProof applies hard gates, official data, the resilience model, and your weights.</p></div>`;
+  $("#compareResults").innerHTML = `<div class="empty-state card"><span>⇄</span><h3>Add two or more careers</h3><p>Load the judge demo or search for careers to calculate a transparent tradeoff.</p></div>`;
+  $("#bridgeSource").value = ""; $("#bridgeSource").removeAttribute("data-soc");
+  $("#bridgeTarget").value = ""; $("#bridgeTarget").removeAttribute("data-soc");
+  $("#bridgeResults").innerHTML = `<div class="empty-state card"><span>⌘</span><h3>Choose a starting and target career</h3><p>The bridge describes occupational overlap. It does not guarantee a transition.</p></div>`;
+  $("#questionInput").value = "";
+  $("#resultArea").innerHTML = `<div class="empty-state card"><span>◈</span><h3>Ask something the data can prove</h3><p>CareerProof will show the calculation, source rows, confidence, and limitations.</p></div>`;
+  ["#evidenceModal", "#methodologyModal", "#judgeOverlay"].forEach((selector) => {
+    const element = $(selector); element?.classList.remove("open"); element?.setAttribute("aria-hidden", "true");
+  });
+  $("#savedDrawer").classList.remove("open"); $("#savedDrawer").setAttribute("aria-hidden", "true");
+  switchWorkspace("home");
+  showToast("Demo reset to the verified starting profile.");
+}
+
+function updatePathWeightTotal() {
+  const total = Object.values(state.pathWeights).reduce((sum, value) => sum + Number(value || 0), 0);
+  $("#pathWeightTotal").textContent = `${Math.round(total)}% raw · normalized to 100%`;
+}
+
+function bindFormsAndControls() {
+  $("#pathForm").addEventListener("submit", (event) => { event.preventDefault(); reviewPathInterpretation(); });
+  $("#interestChips").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-interest]"); if (!button) return;
+    const interest = button.dataset.interest;
+    if (state.selectedInterests.has(interest)) state.selectedInterests.delete(interest); else state.selectedInterests.add(interest);
+    button.classList.toggle("selected");
+  });
+  $("#workEnvironmentChips").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-work-environment]"); if (!button) return;
+    const value = button.dataset.workEnvironment;
+    if (state.workEnvironment.has(value)) state.workEnvironment.delete(value); else state.workEnvironment.add(value);
+    button.classList.toggle("selected");
+  });
+  $("#addSkill").addEventListener("click", () => addSkill($("#skillInput").value));
+  $("#skillInput").addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); addSkill(event.target.value); } });
+  $("#runCompare").addEventListener("click", runCompare);
+  $("#loadDemoCompare").addEventListener("click", () => {
+    state.compareValues = ["Electrical Engineers", "Nuclear Engineers", "Lawyers", "Computer Hardware Engineers"];
+    state.compareWeights = { ...DEMO_COMPARE_WEIGHTS };
+    renderCompareSlots(); renderWeightControls("compareWeights", state.compareWeights);
+    $("#compareState").value = "Maryland"; $("#compareEducation").value = "Bachelor's degree"; $("#compareHardEducation").checked = true;
+    runCompare();
+  });
+  $("#runBridge").addEventListener("click", runBridge);
+  $("#askForm").addEventListener("submit", (event) => { event.preventDefault(); runQuestion(); });
+  $("#searchDegrees").addEventListener("click", searchDegrees);
+  $("#degreeSearch").addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); searchDegrees(); } });
+  $("#runLocation").addEventListener("click", () => runLocation());
+  $("#runDiagnostic").addEventListener("click", () => { activateTrustTab("diagnostic"); runDiagnostic(); });
+  $("#savedButton").addEventListener("click", () => { renderSavedDrawer(); $("#savedDrawer").classList.add("open"); $("#savedDrawer").setAttribute("aria-hidden", "false"); });
+  $("#compareSaved").addEventListener("click", () => { state.comparisonTray.clear(); state.saved.slice(0, 4).forEach((item) => state.comparisonTray.set(String(item.soc_code), item)); renderComparisonTray(); openTrayComparison(); $("#savedDrawer").classList.remove("open"); });
+  $("#openComparisonTray").addEventListener("click", openTrayComparison);
+  $("#clearComparisonTray").addEventListener("click", () => { state.comparisonTray.clear(); renderComparisonTray(); });
+  $("#exportSavedPlan").addEventListener("click", exportSavedPlan);
+  $("#saveDecisionNotes").addEventListener("click", () => { state.decisionNotes = $("#decisionNotes").value; safeStorage.setItem("careerproof-decision-notes", state.decisionNotes); showToast("Decision journal saved locally."); });
+  $("#startJudgeMode").addEventListener("click", startJudgeMode);
+  $("#resetDemo").addEventListener("click", resetExperience);
+  $("#closeJudge").addEventListener("click", () => { $("#judgeOverlay").classList.remove("open"); $("#judgeOverlay").setAttribute("aria-hidden", "true"); });
+  $("#judgePrev").addEventListener("click", () => { if (state.judgeStep > 0) { state.judgeStep--; renderJudgeStep(); } });
+  $("#judgeNext").addEventListener("click", () => { const count = state.judgeData?.steps?.length || 0; if (state.judgeStep < count - 1) { state.judgeStep++; renderJudgeStep(); } else { $("#judgeOverlay").classList.remove("open"); switchWorkspace("path"); applyDemoProfile(); showToast("Demo profile loaded into Path Builder."); } });
+  $("#resetJudgeDemo").addEventListener("click", resetJudgeDemo);
+  $("#universeBack").addEventListener("click", renderUniverseRoot);
+  $("#universeReset").addEventListener("click", renderUniverseRoot);
+  $$("[data-trust-tab]").forEach((button) => button.addEventListener("click", () => activateTrustTab(button.dataset.trustTab)));
+  attachCareerAutocomplete($("#bridgeSource")); attachCareerAutocomplete($("#bridgeTarget")); attachCareerAutocomplete($("#locationCareer"));
+
+  $("#occupationSearch").addEventListener("input", debounce(async (event) => {
+    const query = event.target.value.trim(); const menu = $("#occupationSearchResults");
+    if (query.length < 2) { menu.classList.remove("open"); return; }
+    try {
+      const results = await searchOccupations(query, 12);
+      menu.innerHTML = results.map((item) => `<button class="autocomplete-option" data-occupation-soc="${item.soc_code}"><strong>${escapeHTML(item.occupation_title)}</strong><small>${escapeHTML(item.category)} · ${money(item.median_wage, true)} · ${pct(item.growth_percent)}</small></button>`).join(""); menu.classList.add("open");
+    } catch (error) { console.error(error); }
+  }, 220));
+}
+
+function bindDelegatedActions() {
+  document.addEventListener("click", (event) => {
+    const open = event.target.closest("[data-open-soc]"); if (open) { event.preventDefault(); openOccupation(open.dataset.openSoc); }
+    const occupationOption = event.target.closest("[data-occupation-soc]");
+    if (occupationOption) {
+      event.preventDefault();
+      $("#occupationSearchResults")?.classList.remove("open");
+      openOccupation(occupationOption.dataset.occupationSoc);
+    }
+    const save = event.target.closest("[data-save-soc]"); if (save) { event.stopPropagation(); saveCareerBySoc(save.dataset.saveSoc); }
+    const tray = event.target.closest("[data-tray-soc]"); if (tray) { event.stopPropagation(); addToComparisonTray(tray.dataset.traySoc); }
+    const removeTray = event.target.closest("[data-remove-tray]"); if (removeTray) { state.comparisonTray.delete(String(removeTray.dataset.removeTray)); renderComparisonTray(); }
+    const removeSavedButton = event.target.closest("[data-remove-saved]"); if (removeSavedButton) removeSaved(removeSavedButton.dataset.removeSaved);
+    const removeSkill = event.target.closest("[data-remove-skill]"); if (removeSkill) { state.skills.splice(Number(removeSkill.dataset.removeSkill), 1); renderSkillTags(); }
+    const addSuggested = event.target.closest("[data-add-skill]"); if (addSuggested) addSkill(addSuggested.dataset.addSkill);
+    const challenge = event.target.closest("[data-toggle-challenge]"); if (challenge) {
+      const panel = $(`[data-challenge-panel="${CSS.escape(challenge.dataset.toggleChallenge)}"]`);
+      panel?.classList.toggle("hidden"); if (panel && !panel.classList.contains("hidden")) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    const evidence = event.target.closest("[data-evidence-soc]"); if (evidence) openCareerEvidence(evidence.dataset.evidenceSoc);
+    const quick = event.target.closest("[data-quick-question]"); if (quick) { const question = quick.dataset.quickQuestion; $("#questionInput").value = question; switchWorkspace("ask"); runQuestion(question); }
+    const degree = event.target.closest("[data-degree-code]"); if (degree) { switchWorkspace("degrees"); openDegree(degree.dataset.degreeCode); }
+    const profileTab = event.target.closest("[data-profile-tab]"); if (profileTab) {
+      const profile = profileTab.closest(".occupation-profile");
+      $$('[data-profile-tab]', profile).forEach((button) => button.classList.toggle("active", button === profileTab));
+      $$('[data-profile-panel]', profile).forEach((panel) => panel.classList.toggle("active", panel.dataset.profilePanel === profileTab.dataset.profileTab));
+    }
+    const location = event.target.closest("[data-location-soc]"); if (location) { const item = careerFromCache(location.dataset.locationSoc); $("#locationCareer").value = item?.occupation_title || ""; $("#locationCareer").dataset.soc = location.dataset.locationSoc; switchWorkspace("location"); runLocation(location.dataset.locationSoc); }
+    const closeDrawer = event.target.closest("[data-close-drawer]"); if (closeDrawer) { $("#savedDrawer").classList.remove("open"); $("#savedDrawer").setAttribute("aria-hidden", "true"); }
+    const closeModal = event.target.closest("[data-close-modal]"); if (closeModal) { const id = closeModal.dataset.closeModal === "evidence" ? "#evidenceModal" : "#methodologyModal"; $(id).classList.remove("open"); $(id).setAttribute("aria-hidden", "true"); }
+  });
+  document.addEventListener("keydown", (event) => {
+    const row = event.target.closest("[data-open-soc]");
+    if (row && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); openOccupation(row.dataset.openSoc); }
+  });
+}
+
+async function loadInitialData() {
+  try {
+    const [bootstrap, home, universe] = await Promise.all([
+      api("/api/bootstrap"), api("/api/home"), api("/api/universe?limit=5"),
+    ]);
+    state.bootstrap = {
+      ...bootstrap,
+      stats: normalizeStatsPayload(bootstrap.stats),
+      sources: (bootstrap.sources || bootstrap.catalog?.sources || []).map(normalizeSourcePayload),
+      interests: bootstrap.interests || bootstrap.interest_options || [],
+      question_catalog: (bootstrap.question_catalog || []).flatMap((group) =>
+        group?.examples ? group.examples.map((question) => ({ category: group.category, question })) : [group]
+      ),
+    };
+    state.home = normalizeHomePayload(home);
+    state.universe = normalizeUniversePayload(universe);
+    if (state.lastPath) state.lastPath = normalizePathPayload(state.lastPath);
+    renderStats(); renderInterestChips(); renderSkillTags(); fillStateSelects(state.bootstrap.states || []); renderQuickQuestions(); renderSources(); renderQuestionLibrary(); renderHome();
+    state.home.path?.results?.forEach(cacheCareer);
+    if (state.lastPath?.results) state.lastPath.results.forEach(cacheCareer);
+    state.saved.forEach(cacheCareer);
+    renderSavedCounts(); renderSavedDrawer(); renderSavedWorkspace();
+    $("#profileText").value = "I like electronics and programming, but I am also interested in law. I want to stay near Maryland, earn at least $90,000, and stop at a bachelor's degree.";
+  } catch (error) {
+    console.error(error);
+    showToast(`CareerProof could not load: ${error.message}`);
+    $("#homeMatches").innerHTML = `<div class="refusal-card"><h2>Data load failed</h2><p>${escapeHTML(error.message)}</p></div>`;
+  }
+}
+
+function init() {
+  bindNavigation(); bindGlobalSearch(); bindFormsAndControls(); bindDelegatedActions();
+  renderWeightControls("pathWeights", state.pathWeights, updatePathWeightTotal); updatePathWeightTotal();
+  renderWeightControls("compareWeights", state.compareWeights);
+  renderCompareSlots(); renderInterestChips(); renderSkillTags(); renderSavedCounts();
+  loadInitialData();
+}
+
+document.addEventListener("DOMContentLoaded", init);
