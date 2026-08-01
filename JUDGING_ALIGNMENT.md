@@ -23,10 +23,10 @@ The application works end to end with bundled official data and no required live
 
 Verified evidence:
 
-- 81 automated tests
+- 83 automated tests
 - 19 workflow checks
 - 11 judge diagnostic checks
-- 33 Chromium browser acceptance checks
+- 39 Chromium browser acceptance checks
 - Server smoke test
 - Mobile, keyboard, reduced-motion, and reset behavior
 
@@ -72,8 +72,13 @@ User profile or question
 
 ## Demo and storytelling — 10%
 
-The final interface follows the approved dark dashboard. Judge Mode tells one focused story from uncertainty to an evidence-backed plan, then demonstrates a supported result and a safe refusal.
+The final interface follows the approved dark dashboard. Judge Mode now provides a repeatable ten-stage, 7:50 presentation plus a 4:25 quick pitch. Every stage includes suggested narration, judge-focused proof, active rubric alignment, and a button that opens the matching live feature. The story moves from uncertainty to interpretation, verified ranking, challenge, comparison, evidence, refusal, plan, architecture, and a rubric close.
 
 ## Scoring target
 
 A perfect score cannot be guaranteed. This build is designed to compete in the **98+ range** by maximizing the published rubric rather than adding unfinished complexity.
+
+
+## Public deployment readiness
+
+The repository includes a Render Blueprint, production start command, Dockerfile, platform `PORT` handling, and `/api/health`. The final public URL requires the repository owner to authorize a hosting account.

@@ -104,10 +104,10 @@ Failure:
 
 ## Slide 9 — Verified working prototype
 
-- 81 unit and integration tests
+- 83 unit and integration tests
 - 19 workflow checks
 - 11 judge diagnostics
-- 33 Chromium browser acceptance checks
+- 39 Chromium browser acceptance checks
 - 0 console or page errors
 - 0 pixels of mobile horizontal overflow
 
@@ -123,3 +123,10 @@ It makes the decision:
 - Grounded in evidence
 
 **AI interprets. Code calculates. Evidence verifies. You decide.**
+
+
+## Presentation timing
+
+- Full Judge Mode: 7:50 across ten stages
+- Quick Judge Mode: 4:25 across six stages
+- Every stage includes narration, proof points, rubric focus, and a live-feature launch control

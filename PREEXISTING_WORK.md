@@ -12,7 +12,7 @@ CareerProof AI was developed during the hackathon from earlier exploratory caree
 
 ## Substantial new final-build work
 
-The final 4.0 build adds or substantially rebuilds:
+The final 4.1 build adds or substantially rebuilds:
 
 - Premium dark dashboard based on the approved final mockup
 - Two-stage editable profile interpretation
@@ -29,8 +29,8 @@ The final 4.0 build adds or substantially rebuilds:
 - Saved decision journal
 - One-click reset
 - Full responsive and reduced-motion treatment
-- 81 automated tests
-- 33-check Chromium browser acceptance suite
+- 83 automated tests
+- 39-check Chromium browser acceptance suite
 - Updated architecture, demo, presentation, model, and testing documentation
 
 Open-source libraries, public official datasets, and third-party components are disclosed separately.

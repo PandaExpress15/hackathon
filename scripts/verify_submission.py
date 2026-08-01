@@ -18,6 +18,10 @@ REQUIRED = [
     "SUBMISSION_CHECKLIST.md",
     "JUDGING_ALIGNMENT.md",
     "app.py",
+    "Dockerfile",
+    ".dockerignore",
+    "Procfile",
+    "render.yaml",
     "requirements.txt",
     "requirements-dev.txt",
     "pyproject.toml",
@@ -36,6 +40,9 @@ REQUIRED = [
     "docs/PRESENTATION.html",
     "docs/JUDGE_DIAGNOSTIC.md",
     "docs/TESTING_REPORT.md",
+    "docs/DEPLOYMENT.md",
+    "docs/PRESENTATION_READY_BUILD_REPORT.md",
+    "docs/presentation_ready_build_manifest.json",
     "docs/FINAL_98_BUILD_REPORT.md",
     "docs/RESILIENCE_MODEL_CARD.md",
     "docs/browser_acceptance_results.json",
@@ -44,6 +51,7 @@ REQUIRED = [
     "docs/assets/careerproof-path-builder.png",
     "docs/assets/careerproof-compare.png",
     "docs/assets/careerproof-mobile.png",
+    "docs/assets/careerproof-judge-mode.png",
     "data/README.md",
     "data/LICENSE.md",
     "data/metadata/data_catalog.json",
@@ -60,6 +68,7 @@ REQUIRED = [
     "scripts/smoke_test_app.py",
     "scripts/browser_acceptance.py",
     "scripts/build_submission.py",
+    "scripts/write_release_manifest.py",
 ]
 
 SECRET_PATTERNS = [
@@ -148,8 +157,8 @@ def main() -> int:
         try:
             browser_results = json.loads(browser_results_path.read_text(encoding="utf-8"))
             summary = browser_results.get("summary", {})
-            if int(summary.get("total", 0)) < 33:
-                failures.append("Browser acceptance report does not contain the full 33-check suite")
+            if int(summary.get("total", 0)) < 39:
+                failures.append("Browser acceptance report does not contain the full 39-check suite")
             if int(summary.get("failed", 1)) != 0 or int(summary.get("passed", 0)) != int(summary.get("total", -1)):
                 failures.append("Browser acceptance report contains a failed check")
             if browser_results.get("console_errors"):
@@ -158,6 +167,26 @@ def main() -> int:
                 failures.append("Browser acceptance report contains page errors")
         except (json.JSONDecodeError, TypeError, ValueError) as exc:
             failures.append(f"Browser acceptance report is invalid: {exc}")
+
+    release_manifest_path = ROOT / "docs/presentation_ready_build_manifest.json"
+    if release_manifest_path.exists():
+        try:
+            release = json.loads(release_manifest_path.read_text(encoding="utf-8"))
+            if release.get("version") != "4.1.0-presentation-ready":
+                failures.append("Presentation-ready release manifest has the wrong application version")
+            validation = release.get("validation", {})
+            expected = {"pytest": 83, "workflow_checks": 19, "judge_diagnostic": 11, "browser_acceptance": 39}
+            for key, total in expected.items():
+                result = validation.get(key, {})
+                if int(result.get("passed", -1)) != total or int(result.get("failed", 1)) != 0 or int(result.get("total", -1)) != total:
+                    failures.append(f"Presentation-ready release manifest has an invalid {key} result")
+            judge = release.get("judge_mode", {})
+            if int(judge.get("full_stages", 0)) != 10 or int(judge.get("full_duration_seconds", 9999)) > 600:
+                failures.append("Presentation-ready release manifest has an invalid full Judge Mode")
+            if int(judge.get("quick_stages", 0)) != 6 or int(judge.get("quick_duration_seconds", 0)) >= int(judge.get("full_duration_seconds", 0)):
+                failures.append("Presentation-ready release manifest has an invalid quick Judge Mode")
+        except (json.JSONDecodeError, TypeError, ValueError) as exc:
+            failures.append(f"Presentation-ready release manifest is invalid: {exc}")
 
     text_suffixes = {".py", ".md", ".txt", ".html", ".css", ".js", ".toml", ".json", ".yml", ".yaml"}
     for path in ROOT.rglob("*"):
@@ -190,6 +219,9 @@ def main() -> int:
             "custom suit logo": "brand-emblem" in html,
             "official source label": "Official sources only" in html,
             "Judge Mode": "judge" in html.lower() and "judge" in js.lower(),
+            "presentation timeline": 'id="judgeTimeline"' in html and "renderJudgeTimeline" in js,
+            "presenter narration": "presenter_script" in js and "judge-presenter-script" in css,
+            "full and quick modes": 'id="judgeModeFull"' in html and 'id="judgeModeQuick"' in html,
             "reduced motion": "prefers-reduced-motion" in css,
             "home dashboard": 'id="workspace-home"' in html,
             "resilience model": "resilience" in html.lower() and "resilience" in js.lower(),
@@ -199,6 +231,16 @@ def main() -> int:
         for label, present in visual_markers.items():
             if not present:
                 failures.append(f"Visual product marker missing: {label}")
+
+    app_entry = ROOT / "app.py"
+    render_config = ROOT / "render.yaml"
+    if app_entry.exists() and render_config.exists():
+        app_text = app_entry.read_text(encoding="utf-8")
+        render_text = render_config.read_text(encoding="utf-8")
+        if 'os.getenv("PORT"' not in app_text or '"0.0.0.0"' not in app_text:
+            failures.append("Application entrypoint does not honor public-host PORT and bind address")
+        if "/api/health" not in render_text or "$PORT" not in render_text:
+            failures.append("Render deployment configuration is missing its health check or platform port")
 
     if failures:
         print("\nSTATIC VERIFICATION FAILED")
@@ -235,7 +277,7 @@ def main() -> int:
     print("- Eight official source families and all catalog checksums verified")
     print("- No synthetic job-posting dataset or credential file found")
     print("- Python, JavaScript, tests, natural-language checks, advanced workflows, judge diagnostic, and server smoke test passed")
-    print("- The generated 33-check Chromium acceptance report is complete and error-free")
+    print("- The generated 39-check Chromium acceptance report is complete and error-free")
     print("- Career Intelligence workspaces, trust controls, visual identity, documentation, and packaging assets are present")
     return 0
 

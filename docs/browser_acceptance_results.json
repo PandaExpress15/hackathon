@@ -1,10 +1,10 @@
 {
-  "generated_at_unix": 1785483807,
-  "duration_seconds": 7.27,
+  "generated_at_unix": 1785559874,
+  "duration_seconds": 10.27,
   "summary": {
-    "passed": 33,
+    "passed": 39,
     "failed": 0,
-    "total": 33
+    "total": 39
   },
   "results": [
     {
@@ -30,7 +30,7 @@
     {
       "name": "Home screenshot generated",
       "passed": true,
-      "detail": "/mnt/data/careerproof_98_work/docs/assets/careerproof-98-home.png"
+      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-98-home.png"
     },
     {
       "name": "Career Universe drills from category to career evidence",
@@ -80,7 +80,7 @@
     {
       "name": "Path screenshot generated",
       "passed": true,
-      "detail": "/mnt/data/careerproof_98_work/docs/assets/careerproof-98-path.png"
+      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-98-path.png"
     },
     {
       "name": "Compare Lab calculates tradeoffs and hard constraints",
@@ -95,7 +95,7 @@
     {
       "name": "Compare screenshot generated",
       "passed": true,
-      "detail": "/mnt/data/careerproof_98_work/docs/assets/careerproof-98-compare.png"
+      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-98-compare.png"
     },
     {
       "name": "Skills Bridge produces evidence-backed transition analysis",
@@ -148,9 +148,46 @@
       "detail": "ALL CHECKS PASSED\n11/11 live checks passed\n\u2713\nOfficial source families\n8\n\u2713\nDetailed occupations\n830\n\u2713\nState occupation rows\n36168\n\u2713\nDegree-to-occupation links\n5917\n\u2713\nState price-level records\n51\n\u2713\nQues"
     },
     {
-      "name": "Guided Judge Mode opens and advances",
+      "name": "Judge Mode loads the complete 10-stage presentation",
       "passed": true,
-      "detail": "title=A decision, not another dashboard; active progress=2"
+      "detail": "title=CareerProof AI guided presentation; stages=10; rubric=6; proof_points=4; durations=('7:50', '4:25')"
+    },
+    {
+      "name": "Judge Mode displays presenter narration and rubric proof",
+      "passed": true,
+      "detail": "WHAT THE JUDGES SHOULD NOTICE\nProblem and usefulness \u00b7 25%\n\nThe visual on the right is generated from the same verified demo payload used by the live app."
+    },
+    {
+      "name": "Judge Mode screenshot generated",
+      "passed": true,
+      "detail": "/mnt/data/careerproof_final_polish_work/docs/assets/careerproof-judge-mode.png"
+    },
+    {
+      "name": "Judge Mode switches to a focused quick pitch",
+      "passed": true,
+      "detail": "stages=6; label=1 / 6; duration=4:25"
+    },
+    {
+      "name": "Judge timeline, autoplay control, and reset are reliable",
+      "passed": true,
+      "detail": "title=The recommendation explains how it could be wrong; reset=1 / 10; autoplay=True/True"
+    },
+    {
+      "name": "Judge Mode opens the matching live evidence feature",
+      "passed": true,
+      "detail": "overlay_closed=True; proof=True; evidence=True; VERIFIED ANSWER\nWhere electrical engineers pay may go furthest\n\nCareerProof combines published state median wages with BEA regional price parities, employment, concentration, and O"
+    },
+    {
+      "name": "Information text is readable at 100 percent browser zoom",
+      "passed": true,
+      "detail": {
+        "body": 16,
+        "hero": 15.5,
+        "pageCopy": 15.5,
+        "information": 15.5,
+        "navigation": 15,
+        "table": 14
+      }
     },
     {
       "name": "One-click demo reset restores clean state",
@@ -183,6 +220,7 @@
     "docs/assets/careerproof-98-home.png",
     "docs/assets/careerproof-98-path.png",
     "docs/assets/careerproof-98-compare.png",
+    "docs/assets/careerproof-judge-mode.png",
     "docs/assets/careerproof-98-mobile.png"
   ]
 }

@@ -1,41 +1,49 @@
-CareerProof AI official-data edition
+CareerProof AI 4.1 presentation-ready update
 
-1. Extract the new package into a clean folder:
+The final package is careerproof-ai-presentation-ready.zip.
+
+1. Extract the final package into a clean folder:
 
    cd ~/Downloads
-   unzip careerproof-ai-official-data.zip -d careerproof-ai-official-data
-   cd careerproof-ai-official-data
+   unzip careerproof-ai-presentation-ready.zip -d careerproof-presentation-ready
 
-2. Create the environment and verify it:
+2. Copy the final files into the existing cloned GitHub repository while preserving its .git history:
 
+   rsync -av --delete \
+     --exclude='.git' \
+     --exclude='.venv' \
+     --exclude='__pycache__' \
+     careerproof-presentation-ready/ careerproof-github/
+
+3. Enter the GitHub repository and verify the final build:
+
+   cd ~/Downloads/careerproof-github
    python3 -m venv .venv
    source .venv/bin/activate
    python -m pip install --upgrade pip
    python -m pip install -r requirements-dev.txt
-   pytest -q
-   python scripts/run_demo_checks.py
-   python scripts/smoke_test_app.py
+   PYTHONPATH=src python scripts/verify_submission.py
+   PYTHONPATH=src python scripts/browser_acceptance.py
 
-3. Run the website:
-
-   python app.py
-
-   Open http://127.0.0.1:7860
-
-4. Replace the files in the existing Git repository only after saving any work you need:
+4. Review and push:
 
    git status
    git add -A
-   git commit -m "Replace synthetic data with official BLS Census and O*NET sources"
+   git commit -m "Build presentation-ready CareerProof AI 4.1"
    git push origin main
 
-If this folder is not already connected to the repository:
+Repository:
+https://github.com/PandaExpress15/hackathon.git
 
-   git init
-   git branch -M main
-   git remote add origin https://github.com/PandaExpress15/hackathon.git
-   git add -A
-   git commit -m "CareerProof AI official-data edition"
-   git push -u origin main
+5. Publish with the free Render Blueprint:
 
-Do not use a force push unless you deliberately intend to replace remote history and understand the consequences.
+   Open the repository README on GitHub.
+   Click the Deploy to Render button.
+   Sign in to Render.
+   Approve the free web service from render.yaml.
+   Wait for the service to become Live.
+   Open the public URL in a private browser window.
+   Verify /api/health, Guided Demo, Path Builder, Evidence Passport, refusal, and report export.
+
+Do not force-push unless you deliberately intend to rewrite repository history.
+Do not commit .venv, .env, API keys, passwords, tokens, or private files.

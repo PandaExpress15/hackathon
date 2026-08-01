@@ -1,6 +1,6 @@
 # Testing Report
 
-Generated from real executions on **2026-07-31T07:44:08+00:00** by `python scripts/run_demo_checks.py`.
+Generated from real executions on **2026-08-01T04:52:56+00:00** by `python scripts/run_demo_checks.py`.
 
 ## Summary
 
@@ -9,7 +9,11 @@ Generated from real executions on **2026-07-31T07:44:08+00:00** by `python scrip
 - Advanced workflow checks: **7/7**
 - Bundled labor-market and education records: **eight official source families only**
 - Synthetic labor-market records: **0**
-- Automated unit and integration tests: run with `pytest -q`
+- Automated unit and integration tests: **83/83 passed** with `pytest -q`
+- Chromium browser acceptance checks: **39/39 passed**
+- Live judge diagnostic checks: **11/11 passed**
+- Browser console errors and page errors: **0**
+- Mobile horizontal overflow at 390 pixels: **0 pixels**
 
 ## Natural-language and refusal results
 
@@ -46,4 +50,5 @@ Generated from real executions on **2026-07-31T07:44:08+00:00** by `python scrip
 - Evidence IDs are content-derived and change when the route, query plan, or returned rows change.
 - Path Builder, comparison, similarity, and location scores are labeled CareerProof-derived decision aids and expose their formulas.
 - Refusal checks confirm that the application does not invent employer happiness, hiring guarantees, or lawyer-specific causal degree outcomes.
-- Passing this script does not replace a browser demonstration; it verifies the underlying workflows that the interface calls.
+- The Chromium suite executes the production template, CSS, JavaScript, and real FastAPI endpoints through `TestClient`.
+- Judge Mode tests cover full and quick presentations, narration, rubric proof, timeline navigation, autoplay, reset, live-feature launching, and readability.

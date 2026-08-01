@@ -2,10 +2,10 @@
 
 ## Verified final status
 
-- 81/81 unit and integration tests passed
+- 83/83 unit and integration tests passed
 - 19/19 question and workflow checks passed
 - 11/11 judge diagnostic checks passed
-- 33/33 Chromium browser acceptance checks passed
+- 39/39 Chromium browser acceptance checks passed
 - Server smoke test passed
 - Submission verification passed
 

@@ -47,7 +47,7 @@ def main() -> int:
     port = free_port()
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT / "src")
-    env["CAREERPROOF_PORT"] = str(port)
+    env["PORT"] = str(port)
     process = subprocess.Popen(
         [sys.executable, "app.py"],
         cwd=ROOT,
@@ -100,7 +100,7 @@ def main() -> int:
         if bridge.get("status") != "supported" or not bridge.get("component_scores"):
             raise RuntimeError("Skill Bridge payload is incomplete")
 
-        print(f"PASS: CareerProof launched on port {port}")
+        print(f"PASS: CareerProof honored the deployment PORT variable and launched on port {port}")
         print("PASS: health endpoint returned 830 occupations and eight source families")
         print("PASS: rendered shell contains the campaign and official-data markers")
         print("PASS: Career Universe returned eight fields and career nodes")

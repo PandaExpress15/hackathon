@@ -1,6 +1,6 @@
 # CareerProof AI Architecture
 
-Version: **4.0.0-resilience-intelligence**
+Version: **4.1.0-presentation-ready**
 
 ## Design principle
 

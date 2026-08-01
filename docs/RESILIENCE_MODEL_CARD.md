@@ -1,7 +1,7 @@
 # CareerProof Career Resilience Profile Model Card
 
 Version: **1.0.0**  
-Build: **CareerProof AI 4.0.0**
+Build: **CareerProof AI 4.1.0**
 
 ## Purpose
 

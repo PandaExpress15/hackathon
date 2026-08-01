@@ -11,12 +11,12 @@ The final implementation, verified data scale, feature inventory, limitations, a
 
 Current verified totals:
 
-- 81/81 unit and integration tests
+- 83/83 unit and integration tests
 - 19/19 workflow checks
 - 11/11 judge diagnostic checks
-- 33/33 Chromium browser acceptance checks
+- 39/39 Chromium browser acceptance checks
 - 0 browser console errors
 - 0 browser page errors
 - 0 pixels of horizontal overflow at 390 pixels
 
-Application version: **4.0.0-resilience-intelligence**
+Application version: **4.1.0-presentation-ready**

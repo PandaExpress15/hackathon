@@ -1,7 +1,7 @@
 # CareerProof AI Final 98+ Build Report
 
 Build date: **July 31, 2026**  
-Application version: **4.0.0-resilience-intelligence**  
+Application version: **4.1.0-presentation-ready**  
 Target track: **Track 2 — Trustworthy Data Analysis**
 
 ## Executive result
@@ -134,10 +134,10 @@ Judge Mode contains:
 
 ## Verification summary
 
-- **81/81** unit and integration tests passed
+- **83/83** unit and integration tests passed
 - **19/19** natural-language and advanced workflow checks passed
 - **11/11** judge diagnostic checks passed
-- **33/33** Chromium browser acceptance checks passed
+- **39/39** Chromium browser acceptance checks passed
 - Python compilation passed
 - JavaScript syntax validation passed
 - Server smoke test passed

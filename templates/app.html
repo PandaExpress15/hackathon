@@ -50,7 +50,7 @@
         <button class="nav-item" data-workspace="occupations"><span class="nav-icon">◫</span><span>Occupation Explorer</span></button>
 
         <p class="nav-label">Judge mode</p>
-        <button class="nav-item judge-nav" id="startJudgeMode" aria-label="Start 90-second demo"><span class="nav-icon">▶</span><span>Guided Demo</span></button>
+        <button class="nav-item judge-nav" id="startJudgeMode" aria-label="Start guided judge presentation"><span class="nav-icon">▶</span><span>Guided Demo</span></button>
         <button class="nav-item" data-open-methodology><span class="nav-icon">◉</span><span>Methodology</span></button>
         <button class="nav-item" data-run-diagnostic><span class="nav-icon">✓</span><span>System Diagnostics</span></button>
       </nav>
@@ -302,7 +302,48 @@
 
   <aside id="methodologyModal" class="modal-shell" aria-hidden="true"><div class="modal-backdrop" data-close-modal="methodology"></div><section class="modal-panel methodology-panel"><header><div><span class="section-kicker">Model card</span><h2>How CareerProof calculates resilience</h2></div><button class="icon-button" data-close-modal="methodology" aria-label="Close methodology">×</button></header><div id="methodologyContent" class="modal-content"></div></section></aside>
 
-  <div id="judgeOverlay" class="judge-overlay" aria-hidden="true"><div class="judge-backdrop"></div><section class="judge-modal"><header><div><span class="judge-kicker"><i></i> Guided judge mode</span><h2 id="judgeTitle">CareerProof in 90 seconds</h2></div><div class="judge-header-actions"><button id="resetJudgeDemo" class="outline-button">Reset demo</button><button id="closeJudge" class="icon-button" aria-label="Close guided demo">×</button></div></header><div class="judge-progress" id="judgeProgress"></div><div id="judgeContent" class="judge-content"></div><footer><button id="judgePrev" class="outline-button">← Back</button><span id="judgeStepLabel"></span><button id="judgeNext" class="primary-button"><span>Next</span><b>→</b></button></footer></section></div>
+  <div id="judgeOverlay" class="judge-overlay" aria-hidden="true">
+    <div class="judge-backdrop"></div>
+    <section class="judge-modal" role="dialog" aria-modal="true" aria-labelledby="judgeTitle">
+      <header class="judge-presentation-header">
+        <div>
+          <span class="judge-kicker"><i></i> Presentation-ready judge mode</span>
+          <h2 id="judgeTitle">CareerProof AI guided presentation</h2>
+          <p id="judgeSubtitle">A verified success case, evidence case, and safe failure case</p>
+        </div>
+        <div class="judge-header-tools">
+          <div class="judge-mode-toggle" role="group" aria-label="Choose presentation length">
+            <button id="judgeModeFull" class="active" type="button">Full demo <span id="judgeFullDuration">--:--</span></button>
+            <button id="judgeModeQuick" type="button">Quick pitch <span id="judgeQuickDuration">--:--</span></button>
+          </div>
+          <div class="judge-clock" aria-label="Presentation timer"><small>Elapsed</small><strong id="judgeElapsed">0:00</strong></div>
+          <button id="judgeAutoplay" class="outline-button" type="button" aria-pressed="false">Auto-advance off</button>
+          <button id="resetJudgeDemo" class="outline-button" type="button">Reset</button>
+          <button id="closeJudge" class="icon-button" type="button" aria-label="Close guided demo">×</button>
+        </div>
+      </header>
+      <div id="judgeRubric" class="judge-rubric-strip" aria-label="Hackathon rubric alignment"></div>
+      <div class="judge-presentation-layout">
+        <aside class="judge-timeline-panel">
+          <div class="judge-timeline-heading"><span>Presentation path</span><small>Click any step</small></div>
+          <nav id="judgeTimeline" class="judge-timeline" aria-label="Judge presentation steps"></nav>
+          <div class="judge-keyboard-help"><kbd>←</kbd><kbd>→</kbd> navigate <kbd>Space</kbd> auto <kbd>Esc</kbd> close</div>
+        </aside>
+        <div class="judge-stage-shell">
+          <div class="judge-progress" id="judgeProgress" aria-hidden="true"></div>
+          <div id="judgeContent" class="judge-content" aria-live="polite"></div>
+        </div>
+      </div>
+      <footer class="judge-presentation-footer">
+        <div class="judge-footer-status"><span id="judgeStepLabel">1 / 10</span><small id="judgeStepTime">Suggested: 0:35</small></div>
+        <div class="judge-footer-actions">
+          <button id="judgePrev" class="outline-button" type="button">← Back</button>
+          <button id="judgeOpenLive" class="outline-button judge-live-button" type="button">Open live feature ↗</button>
+          <button id="judgeNext" class="primary-button" type="button"><span>Next</span><b>→</b></button>
+        </div>
+      </footer>
+    </section>
+  </div>
 
   <aside id="comparisonTray" class="comparison-tray" aria-hidden="true"><div id="comparisonTrayItems" class="comparison-tray-items"></div><div class="comparison-tray-actions"><button id="clearComparisonTray" class="soft-button">Clear</button><button id="openComparisonTray" class="primary-button">Compare <span id="comparisonTrayCount">0</span> careers →</button></div></aside>
 

@@ -12,8 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = ROOT.parent
 DIST = ROOT / "dist"
-ZIP_PATH = OUTPUT_DIR / "careerproof-ai-98-final.zip"
-MANIFEST_PATH = OUTPUT_DIR / "careerproof-ai-98-final.sha256.txt"
+ZIP_PATH = OUTPUT_DIR / "careerproof-ai-presentation-ready.zip"
+MANIFEST_PATH = OUTPUT_DIR / "careerproof-ai-presentation-ready.sha256.txt"
 
 EXCLUDED_PARTS = {".git", ".venv", "__pycache__", ".pytest_cache", ".ruff_cache", "dist", "node_modules"}
 EXCLUDED_FILES = {".env", ".DS_Store"}
@@ -56,18 +56,27 @@ def validate_extracted_submission(extract_dir: Path) -> None:
         "data/processed/regional_price_parities_2024.csv",
         "data/processed/degree_career_crosswalk.csv",
         "data/metadata/data_catalog.json",
+        "docs/PRESENTATION_READY_BUILD_REPORT.md",
+        "docs/presentation_ready_build_manifest.json",
         "docs/FINAL_98_BUILD_REPORT.md",
         "docs/RESILIENCE_MODEL_CARD.md",
         "docs/TESTING_REPORT.md",
         "docs/PRESENTATION.html",
         "docs/architecture.svg",
         "docs/browser_acceptance_results.json",
+        "docs/DEPLOYMENT.md",
         "docs/final_98_build_manifest.json",
         "docs/assets/careerproof-home.png",
         "docs/assets/careerproof-path-builder.png",
         "docs/assets/careerproof-compare.png",
         "docs/assets/careerproof-mobile.png",
+        "docs/assets/careerproof-judge-mode.png",
+        "Dockerfile",
+        ".dockerignore",
+        "Procfile",
+        "render.yaml",
         "scripts/browser_acceptance.py",
+        "scripts/write_release_manifest.py",
         "scripts/verify_submission.py",
     ]
     missing = [path for path in required if not (extract_dir / path).exists()]
@@ -91,6 +100,8 @@ def main() -> int:
     else:
         run_checked([sys.executable, "scripts/verify_submission.py"], cwd=ROOT, label="source-tree verification")
 
+    run_checked([sys.executable, "scripts/write_release_manifest.py"], cwd=ROOT, label="release manifest")
+
     DIST.mkdir(exist_ok=True)
     for stale in [ZIP_PATH, MANIFEST_PATH]:
         if stale.exists():
@@ -103,14 +114,14 @@ def main() -> int:
 
     zip_hash = sha256_bytes(ZIP_PATH.read_bytes())
     manifest_lines = [
-        "CareerProof AI 98+ Final Submission Manifest",
+        "CareerProof AI 4.1 Presentation-Ready Submission Manifest",
         f"Generated: {datetime.now(timezone.utc).isoformat(timespec='seconds')}",
-        "Application version: 4.0.0-resilience-intelligence",
+        "Application version: 4.1.0-presentation-ready",
         f"File count: {len(files)}",
         f"ZIP bytes: {ZIP_PATH.stat().st_size}",
         f"ZIP SHA-256: {zip_hash}",
         "Data policy: eight official source families; zero synthetic labor-market records",
-        "Validation target: 81 tests, 19 workflows, 11 judge diagnostics, 33 Chromium checks",
+        "Validation target: 83 tests, 19 workflows, 11 judge diagnostics, 39 Chromium checks",
         "",
         "SHA-256                                                          Bytes        Path",
         "----------------------------------------------------------------  -----------  ----",
@@ -138,7 +149,7 @@ def main() -> int:
     print(f"SHA-256: {zip_hash}")
     print(f"Manifest: {MANIFEST_PATH}")
     print(f"Files: {len(files)}")
-    print("The clean extracted ZIP passed the complete verifier and 33-check Chromium browser suite.")
+    print("The clean extracted ZIP passed the complete verifier and 39-check Chromium browser suite.")
     return 0
 
 

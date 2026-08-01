@@ -11,6 +11,10 @@
 - [x] Human-controlled decisions
 - [x] No unfinished primary buttons
 - [x] One-click judge reset
+- [x] Full and quick Judge Mode presentations
+- [x] Presenter narration and rubric alignment
+- [x] Judge timeline, autoplay, keyboard controls, reset, and live-feature launch
+- [x] Text readability verified at 100 percent browser zoom
 
 ## Trust and safety
 
@@ -35,15 +39,24 @@
 
 ## Testing
 
-- [x] 81/81 unit and integration tests
+- [x] 83/83 unit and integration tests
 - [x] 19/19 workflow checks
 - [x] 11/11 judge diagnostic checks
-- [x] 33/33 browser acceptance checks
+- [x] 39/39 browser acceptance checks
 - [x] Server smoke test
 - [x] Mobile overflow test
 - [x] Reduced-motion test
 - [x] Console and page error test
 - [x] Submission verifier
+
+## Deployment
+
+- [x] Standard `PORT` environment variable supported
+- [x] Default public bind address is `0.0.0.0`
+- [x] Render Blueprint included
+- [x] Dockerfile and Procfile included
+- [x] `/api/health` configured
+- [ ] Public Render URL created and verified in a private browser
 
 ## Repository and ZIP
 

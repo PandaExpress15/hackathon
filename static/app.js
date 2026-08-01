@@ -70,6 +70,12 @@ const state = {
   universeCategoryData: null,
   judgeData: null,
   judgeStep: 0,
+  judgeMode: "full",
+  judgeStartedAt: null,
+  judgeStepStartedAt: null,
+  judgeTimer: null,
+  judgeAutoplay: false,
+  judgeAutoTimer: null,
   trustLoaded: { model: false, quality: false, diagnostic: false },
   toastTimer: null,
 };
@@ -1445,7 +1451,7 @@ function openAnswerEvidence(data) {
 function closeAllOverlays() {
   $$(".modal-shell.open").forEach((modal) => { modal.classList.remove("open"); modal.setAttribute("aria-hidden", "true"); });
   $("#savedDrawer").classList.remove("open"); $("#savedDrawer").setAttribute("aria-hidden", "true");
-  $("#judgeOverlay").classList.remove("open"); $("#judgeOverlay").setAttribute("aria-hidden", "true");
+  if ($("#judgeOverlay")?.classList.contains("open")) closeJudgeMode();
 }
 
 function saveCareerBySoc(socCode) {
@@ -1527,55 +1533,405 @@ function exportSavedPlan() {
   showToast("Career plan exported as HTML. Open it in a browser to print or save as PDF.");
 }
 
-async function startJudgeMode() {
-  const overlay = $("#judgeOverlay");
-  overlay.classList.add("open"); overlay.setAttribute("aria-hidden", "false");
-  $("#judgeContent").innerHTML = `<div class="loading-card"><span class="spinner"></span><p>Preparing the verified demo state…</p></div>`;
-  try {
-    if (!state.judgeData) state.judgeData = normalizeJudgePayload(await api("/api/judge-demo"));
-    state.judgeStep = 0;
-    renderJudgeProgress(); renderJudgeStep();
-  } catch (error) { $("#judgeContent").innerHTML = `<p>${escapeHTML(error.message)}</p>`; }
+function formatJudgeTime(totalSeconds) {
+  const seconds = Math.max(0, Math.round(Number(totalSeconds) || 0));
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+function getJudgeSteps() {
+  const steps = state.judgeData?.steps || [];
+  return state.judgeMode === "quick" ? steps.filter((step) => step.quick) : steps;
+}
+
+function currentJudgeStep() {
+  return getJudgeSteps()[state.judgeStep] || null;
+}
+
+function stopJudgeAutoTimer() {
+  if (state.judgeAutoTimer) window.clearTimeout(state.judgeAutoTimer);
+  state.judgeAutoTimer = null;
+}
+
+function stopJudgeClock() {
+  if (state.judgeTimer) window.clearInterval(state.judgeTimer);
+  state.judgeTimer = null;
+  stopJudgeAutoTimer();
+}
+
+function updateJudgeElapsed() {
+  const elapsed = state.judgeStartedAt ? Math.floor((Date.now() - state.judgeStartedAt) / 1000) : 0;
+  const output = $("#judgeElapsed");
+  if (output) output.textContent = formatJudgeTime(elapsed);
+}
+
+function startJudgeClock({ reset = false } = {}) {
+  if (reset || !state.judgeStartedAt) state.judgeStartedAt = Date.now();
+  if (reset || !state.judgeStepStartedAt) state.judgeStepStartedAt = Date.now();
+  if (state.judgeTimer) window.clearInterval(state.judgeTimer);
+  updateJudgeElapsed();
+  state.judgeTimer = window.setInterval(updateJudgeElapsed, 1000);
+}
+
+function judgeRubricKeys(stepId) {
+  const map = {
+    purpose: ["problem", "story"], interpret: ["data_ai", "trust"], path: ["prototype", "data_ai"],
+    challenge: ["trust", "data_ai"], compare: ["prototype", "data_ai"], proof: ["trust", "data_ai"],
+    refusal: ["trust"], plan: ["problem", "prototype"], architecture: ["architecture"], close: ["story"],
+  };
+  return map[stepId] || [];
+}
+
+function renderJudgeRubric() {
+  const container = $("#judgeRubric");
+  if (!container) return;
+  const active = new Set(judgeRubricKeys(currentJudgeStep()?.id));
+  container.innerHTML = (state.judgeData?.rubric || []).map((item) => `
+    <div class="judge-rubric-chip ${active.has(item.key) ? "active" : ""}" title="${escapeHTML(item.proof)}">
+      <span>${escapeHTML(item.label)}</span><strong>${item.weight}%</strong>
+    </div>`).join("");
+}
+
+function renderJudgeTimeline() {
+  const container = $("#judgeTimeline");
+  if (!container) return;
+  const steps = getJudgeSteps();
+  container.innerHTML = steps.map((step, index) => `
+    <button type="button" class="judge-timeline-step ${index === state.judgeStep ? "active" : ""} ${index < state.judgeStep ? "complete" : ""}" data-judge-step="${index}" aria-current="${index === state.judgeStep ? "step" : "false"}">
+      <span class="judge-timeline-index">${index < state.judgeStep ? "✓" : String(index + 1).padStart(2, "0")}</span>
+      <span class="judge-timeline-copy"><strong>${escapeHTML(step.title)}</strong><small>${escapeHTML(step.judge_focus || "Judge proof")}</small></span>
+      <time>${formatJudgeTime(step.duration_seconds)}</time>
+    </button>`).join("");
 }
 
 function renderJudgeProgress() {
-  const steps = state.judgeData?.steps || [];
-  $("#judgeProgress").style.gridTemplateColumns = `repeat(${steps.length},1fr)`;
-  $("#judgeProgress").innerHTML = steps.map((_, index) => `<span class="${index <= state.judgeStep ? "active" : ""}"></span>`).join("");
+  const steps = getJudgeSteps();
+  const progress = $("#judgeProgress");
+  if (progress) {
+    progress.style.gridTemplateColumns = `repeat(${Math.max(1, steps.length)},1fr)`;
+    progress.innerHTML = steps.map((_, index) => `<span class="${index <= state.judgeStep ? "active" : ""}"></span>`).join("");
+  }
   $("#judgeStepLabel").textContent = `${state.judgeStep + 1} / ${steps.length}`;
+  $("#judgeStepTime").textContent = `Suggested: ${formatJudgeTime(currentJudgeStep()?.duration_seconds || 0)}`;
   $("#judgePrev").disabled = state.judgeStep === 0;
-  $("#judgeNext").innerHTML = state.judgeStep === steps.length - 1 ? `<span>Finish</span><b>✓</b>` : `<span>Next</span><b>→</b>`;
+  $("#judgeNext").innerHTML = state.judgeStep === steps.length - 1 ? `<span>Finish presentation</span><b>✓</b>` : `<span>Next proof</span><b>→</b>`;
+  const live = $("#judgeOpenLive");
+  if (live) live.textContent = currentJudgeStep()?.action_label || "Open live feature ↗";
+  renderJudgeTimeline();
+  renderJudgeRubric();
 }
 
 function judgeMiniCareer(item, index) {
-  return `<article class="judge-mini-card"><span class="section-kicker">Rank ${index + 1}</span><h4>${escapeHTML(item.occupation_title)}</h4><strong>${Number(item.score).toFixed(1)}</strong><small>${money(item.median_wage, true)} · ${escapeHTML(item.resilience_label)}</small></article>`;
+  const feasibility = item.feasibility?.status || "review";
+  return `<article class="judge-mini-card">
+    <div class="judge-mini-rank"><span>Rank ${index + 1}</span><em class="feasibility-chip ${feasibilityClass(feasibility)}">${escapeHTML(feasibility)}</em></div>
+    <h4>${escapeHTML(item.occupation_title)}</h4>
+    <div class="judge-mini-score"><strong>${Number(item.score).toFixed(1)}</strong><small>CareerProof fit</small></div>
+    <p>${money(item.median_wage, true)} median · ${pct(item.growth_percent)} growth</p>
+    <span>${escapeHTML(item.resilience_label)} resilience</span>
+  </article>`;
+}
+
+function judgeProofPoints(step) {
+  return `<div class="judge-proof-points"><span>Proof points</span>${(step.proof_points || []).map((item) => `<div><i>✓</i><p>${escapeHTML(item)}</p></div>`).join("")}</div>`;
+}
+
+function judgeComponentRows(item) {
+  return Object.entries(item?.contributions || {}).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 5).map(([key, value]) => `
+    <div class="judge-component-row"><span>${escapeHTML(WEIGHT_META[key]?.label || titleCase(key))}</span><i><span style="width:${Math.min(100, Number(item.components?.[key] || 0))}%"></span></i><strong>${Number(value).toFixed(1)}</strong></div>`).join("");
+}
+
+function judgePurposeVisual(data) {
+  const meta = data.demo_meta || {};
+  const stats = state.bootstrap?.stats || {};
+  return `<div class="judge-problem-visual">
+    <span class="judge-visual-label">THE USER'S QUESTION</span>
+    <blockquote>${escapeHTML(meta.core_question || "What career fits me and remains valuable as AI changes work?")}</blockquote>
+    <div class="judge-data-pulse">
+      <div><strong>${formatNumber(stats.occupations || 830)}</strong><small>occupations</small></div>
+      <div><strong>${compactNumber(stats.state_occupation_rows || 36168)}</strong><small>state records</small></div>
+      <div><strong>${compactNumber(stats.degree_occupation_links || 5917)}</strong><small>degree links</small></div>
+      <div><strong>${formatNumber(stats.official_sources || 8)}</strong><small>source families</small></div>
+    </div>
+    <p>${escapeHTML(meta.disclosure || "Demonstration values are official or clearly labeled derived metrics.")}</p>
+  </div>`;
+}
+
+function judgeInterpretVisual(data) {
+  const interpretation = data.interpretation || {};
+  return `<div class="judge-interpret-visual">
+    <div class="judge-control-chain"><span>Natural language</span><b>→</b><span>Structured interpretation</span><b>→</b><strong>User approval</strong><b>→</b><span>Calculation</span></div>
+    <div class="judge-interpret-grid">
+      <section><small>Goal</small><h4>${escapeHTML(interpretation.goal || "Find a sustainable AI-resilient career")}</h4><div class="judge-chip-list">${(interpretation.interests || []).map((item) => `<span>${escapeHTML(item)}</span>`).join("")}</div></section>
+      <section><small>Hard and soft constraints</small>${(interpretation.constraints || []).map((item) => `<p><strong>${escapeHTML(item.label)}</strong><span>${escapeHTML(item.value)}</span>${item.hard ? '<em>HARD</em>' : ""}</p>`).join("")}</section>
+      <section><small>User-controlled priorities</small>${(interpretation.priorities || []).slice(0, 6).map((item) => `<div class="judge-priority"><span>${escapeHTML(item.label)}</span><i><span style="width:${Math.min(100, Number(item.weight) * 2)}%"></span></i><strong>${Number(item.weight).toFixed(0)}%</strong></div>`).join("")}</section>
+    </div>
+  </div>`;
+}
+
+function judgePathVisual(data) {
+  const results = data.path_builder?.results || [];
+  const top = results[0] || {};
+  return `<div class="judge-path-visual">
+    <div class="judge-mini-cards">${results.slice(0, 3).map(judgeMiniCareer).join("")}</div>
+    <div class="judge-score-proof">
+      <div class="judge-score-orb" style="--score:${Math.round(top.score || 0)}"><strong>${Number(top.score || 0).toFixed(1)}</strong><span>transparent fit score</span></div>
+      <div class="judge-component-list">${judgeComponentRows(top)}</div>
+    </div>
+    <div class="judge-hard-gate"><span>Hard constraint gate</span><strong>${formatNumber(data.path_builder?.excluded_by_hard_constraints?.count || 0)} careers excluded before ranking</strong><p>The bachelor's-degree ceiling is enforced before soft scoring.</p></div>
+  </div>`;
+}
+
+function judgeChallengeVisual(data) {
+  const top = data.path_builder?.results?.[0] || {};
+  const challenge = top.challenge || {};
+  const changes = data.path_builder?.what_would_change_recommendation || [];
+  return `<div class="judge-challenge-visual">
+    <header><span>CHALLENGE THE WINNER</span><h4>${escapeHTML(top.occupation_title || "Top recommendation")}</h4></header>
+    <div class="judge-challenge-grid">
+      <section><small>Weakest evidence</small><p>${escapeHTML(challenge.weakest_evidence || "No weakness published")}</p><small>Missing or limited</small><ul>${(challenge.missing_information || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></section>
+      <section><small>Strongest challenger</small><p><strong>${escapeHTML(challenge.strongest_challenger?.occupation_title || "Alternative shown in results")}</strong><br>${escapeHTML(challenge.strongest_challenger?.why_it_could_win || "Different priorities can change the ranking.")}</p><small>What changes the result?</small>${changes.slice(0, 3).map((item) => `<div class="judge-change-row"><span>${escapeHTML(item.condition)}</span><strong>${escapeHTML(item.impact)}</strong></div>`).join("")}</section>
+    </div>
+    <div class="judge-question-callout">${escapeHTML(challenge.question_to_ask || "What evidence would change your mind?")}</div>
+  </div>`;
+}
+
+function judgeCompareVisual(data) {
+  const results = data.comparison?.results || [];
+  return `<div class="judge-compare-visual">
+    <div class="judge-mini-cards">${results.slice(0, 3).map(judgeMiniCareer).join("")}</div>
+    <div class="tradeoff-callout">${escapeHTML(data.comparison?.tradeoff_summary?.plain_language || "The visible result reflects the selected priorities and hard constraints.")}</div>
+    <div class="judge-scenario-grid">${(data.comparison?.sensitivity || []).slice(0, 6).map((item) => `<div><span>${escapeHTML(item.label)}</span><strong>${escapeHTML(item.top_occupation)}</strong><b>${Number(item.top_score).toFixed(1)}</b></div>`).join("")}</div>
+  </div>`;
+}
+
+function judgeProofVisual(data) {
+  const answer = data.verified_answer || {};
+  const e = answer.evidence || {};
+  const rows = answer.rows || [];
+  return `<div class="judge-evidence-visual">
+    <div class="judge-evidence-head"><span>VERIFIED ANSWER</span><h4>${escapeHTML(answer.headline || "Inspect the proof")}</h4><p>${escapeHTML(answer.explanation || answer.summary || "")}</p></div>
+    <div class="judge-evidence-kpis">
+      <div><small>Source confidence</small><strong>${escapeHTML(e.confidence?.label || answer.confidence?.label || "High")}</strong></div>
+      <div><small>Rows shown</small><strong>${formatNumber(rows.length)}</strong></div>
+      <div><small>Excluded</small><strong>${formatNumber(answer.analysis?.suppressed_or_excluded || 0)}</strong></div>
+      <div><small>Evidence ID</small><strong>${escapeHTML(e.evidence_id || answer.evidence_id || "Generated")}</strong></div>
+    </div>
+    <div class="judge-location-rows">${rows.slice(0, 3).map((row, index) => `<div><span>${index + 1}</span><strong>${escapeHTML(row.state)}</strong><p>${money(row.purchasing_power_wage)} purchasing-power wage</p><b>${escapeHTML(row.decision_confidence || "Review")}</b></div>`).join("")}</div>
+    <div class="judge-calculation"><small>Visible calculation</small><p>${escapeHTML(answer.analysis?.calculation || e.calculation || "Calculation is displayed in the Evidence Passport.")}</p></div>
+  </div>`;
+}
+
+function judgeRefusalVisual(data) {
+  const refusal = data.safe_refusal || {};
+  return `<div class="judge-refusal-visual">
+    <div class="judge-refusal-icon">!</div>
+    <span>UNSUPPORTED CLAIM BLOCKED</span>
+    <h4>${escapeHTML(refusal.headline || "The available data cannot support that conclusion")}</h4>
+    <p>${escapeHTML(refusal.explanation || refusal.summary || "")}</p>
+    <div class="judge-refusal-plan"><small>Controlled query plan</small><code>${escapeHTML(JSON.stringify(refusal.query_plan || {}, null, 2))}</code></div>
+    <div class="judge-suggestion-chips">${(refusal.suggestions || []).slice(0, 3).map((item) => `<span>${escapeHTML(item)}</span>`).join("")}</div>
+  </div>`;
+}
+
+function judgePlanVisual(data) {
+  const plan = data.action_plan || {};
+  const roadmap = plan.roadmap || {};
+  const portfolio = [["Primary path", plan.primary], ["Safer backup", plan.backup], ["High upside", plan.high_upside], ["Fast entry", plan.fast_entry]];
+  return `<div class="judge-plan-visual">
+    <div class="judge-portfolio-grid">${portfolio.map(([label, item]) => item ? `<article><small>${escapeHTML(label)}</small><strong>${escapeHTML(item.occupation_title)}</strong><p>${money(item.median_wage, true)} · ${escapeHTML(item.resilience_label)} resilience</p></article>` : "").join("")}</div>
+    <div class="judge-roadmap"><span>ACTION ROADMAP</span>${(roadmap.actions || []).map((action, index) => `<div><i>${index + 1}</i><p><strong>${escapeHTML(action.label || action.title || titleCase(action.type))}</strong><small>${escapeHTML(action.detail || "")}</small></p></div>`).join("")}</div>
+    <div class="judge-report-strip"><strong>Exportable report</strong>${(plan.report_sections || []).slice(0, 8).map((section) => `<span>${escapeHTML(section)}</span>`).join("")}</div>
+  </div>`;
+}
+
+function judgeArchitectureVisual(data) {
+  return `<div class="judge-architecture-visual">${(data.architecture || []).map((stage, index) => `<div class="judge-architecture-stage"><span>${index + 1}</span><section><strong>${escapeHTML(stage.label)}</strong><p>${escapeHTML(stage.detail)}</p></section>${index < (data.architecture || []).length - 1 ? "<b>→</b>" : ""}</div>`).join("")}</div>`;
+}
+
+function judgeCloseVisual(data) {
+  return `<div class="judge-close-visual">
+    <div class="judge-method-lockup"><span>AI interprets.</span><span>Code calculates.</span><span>Evidence verifies.</span><strong>You decide.</strong></div>
+    <div class="judge-final-rubric">${(data.rubric || []).map((item) => `<div><span>${escapeHTML(item.label)}</span><strong>${item.weight}%</strong><p>${escapeHTML(item.proof)}</p></div>`).join("")}</div>
+    <p>${escapeHTML(data.closing?.summary || "A practical, trustworthy career decision system.")}</p>
+  </div>`;
+}
+
+function judgeVisualForStep(step, data) {
+  if (step.id === "purpose") return judgePurposeVisual(data);
+  if (step.id === "interpret") return judgeInterpretVisual(data);
+  if (step.id === "path") return judgePathVisual(data);
+  if (step.id === "challenge") return judgeChallengeVisual(data);
+  if (step.id === "compare") return judgeCompareVisual(data);
+  if (step.id === "proof") return judgeProofVisual(data);
+  if (step.id === "refusal") return judgeRefusalVisual(data);
+  if (step.id === "plan") return judgePlanVisual(data);
+  if (step.id === "architecture") return judgeArchitectureVisual(data);
+  return judgeCloseVisual(data);
+}
+
+function scheduleJudgeAutoplay() {
+  stopJudgeAutoTimer();
+  if (!state.judgeAutoplay || !$("#judgeOverlay")?.classList.contains("open")) return;
+  const step = currentJudgeStep();
+  const delay = Math.max(8, Number(step?.duration_seconds || 30)) * 1000;
+  state.judgeAutoTimer = window.setTimeout(() => {
+    const steps = getJudgeSteps();
+    if (state.judgeStep < steps.length - 1) goToJudgeStep(state.judgeStep + 1);
+    else setJudgeAutoplay(false);
+  }, delay);
+}
+
+function setJudgeAutoplay(enabled) {
+  state.judgeAutoplay = Boolean(enabled);
+  const button = $("#judgeAutoplay");
+  if (button) {
+    button.setAttribute("aria-pressed", String(state.judgeAutoplay));
+    button.textContent = state.judgeAutoplay ? "Auto-advance on" : "Auto-advance off";
+    button.classList.toggle("active", state.judgeAutoplay);
+  }
+  if (state.judgeAutoplay) scheduleJudgeAutoplay();
+  else stopJudgeAutoTimer();
 }
 
 function renderJudgeStep() {
   const data = state.judgeData;
-  const step = data.steps[state.judgeStep];
-  $("#judgeTitle").textContent = step.title;
-  let visual = "";
-  if (step.id === "purpose") {
-    visual = `<div class="big-stat"><span>Real user problem</span><strong>1 decision</strong><p>What career fits me, pays well, has future demand, and is difficult for AI to fully replace?</p></div>`;
-  } else if (step.id === "interpret") {
-    const interpretation = data.interpretation;
-    visual = `<div class="interpretation-card"><span class="section-kicker">Editable before calculation</span><h3>${escapeHTML(interpretation.goal)}</h3><div class="interpretation-grid"><section class="interpretation-section"><h3>Constraints</h3>${interpretation.constraints.map((item) => `<p><strong>${escapeHTML(item.label)}:</strong> ${escapeHTML(item.value)}</p>`).join("")}</section><section class="interpretation-section"><h3>Priorities</h3>${interpretation.priorities.slice(0, 5).map((item) => `<div class="priority-row"><span>${escapeHTML(item.label)}</span><b>${item.weight}%</b></div>`).join("")}</section></div></div>`;
-  } else if (step.id === "path") {
-    visual = `<div class="judge-mini-cards">${(data.path_builder.results || []).slice(0, 3).map(judgeMiniCareer).join("")}</div><div class="evidence-box green" style="margin-top:9px"><small>Hard constraint gate</small><strong>${data.path_builder.excluded_by_hard_constraints?.count || 0} careers excluded before ranking</strong><p>Education is treated as a hard ceiling in this demonstration.</p></div>`;
-  } else if (step.id === "challenge") {
-    const top = data.path_builder.results[0];
-    visual = `<div class="challenge-panel"><h4>Challenge ${escapeHTML(top.occupation_title)}</h4><div class="challenge-grid"><section><h5>Weakest evidence</h5><p>${escapeHTML(top.challenge?.weakest_evidence || "")}</p><h5>Assumptions</h5><ul>${(top.challenge?.assumptions || []).map((item) => `<li>${escapeHTML(item)}</li>`).join("")}</ul></section><section><h5>Strongest challenger</h5><p>${escapeHTML(top.challenge?.strongest_challenger ? `${top.challenge.strongest_challenger.occupation_title}: ${top.challenge.strongest_challenger.why_it_could_win}` : "No challenger")}</p><h5>What changes the result?</h5><p>${escapeHTML(data.path_builder.what_would_change_recommendation?.[0]?.impact || "Change the priority weights.")}</p></section></div></div>`;
-  } else if (step.id === "compare") {
-    visual = `<div class="judge-mini-cards">${(data.comparison.results || []).slice(0, 3).map(judgeMiniCareer).join("")}</div><div class="tradeoff-callout">${escapeHTML(data.comparison.tradeoff_summary?.plain_language || "")}</div><div class="sensitivity-list" style="margin-top:8px">${(data.comparison.sensitivity || []).slice(0, 4).map((item) => `<div class="sensitivity-row"><span>${escapeHTML(item.label)}</span><strong>${escapeHTML(item.top_occupation)}</strong><b>${Number(item.top_score).toFixed(1)}</b></div>`).join("")}</div>`;
-  } else if (step.id === "proof") {
-    const e = data.verified_answer.evidence || {};
-    visual = `<div class="evidence-kpi-grid"><div class="evidence-kpi"><small>Official sources</small><strong>${escapeHTML((e.source_names || []).join(" + "))}</strong></div><div class="evidence-kpi"><small>Rows used</small><strong>${data.verified_answer.analysis?.rows_used || 0}</strong></div><div class="evidence-kpi"><small>Excluded</small><strong>${data.verified_answer.analysis?.suppressed_or_excluded || 0}</strong></div><div class="evidence-kpi"><small>Evidence ID</small><strong>${escapeHTML(e.evidence_id || "")}</strong></div></div><div class="evidence-section" style="margin-top:8px"><h3>Visible calculation</h3><p>${escapeHTML(data.verified_answer.analysis?.calculation || "")}</p></div>`;
-  } else if (step.id === "refusal") {
-    visual = `<div class="refusal-card"><span class="refusal-badge">Safe refusal</span><h2>${escapeHTML(data.safe_refusal.headline)}</h2><p>${escapeHTML(data.safe_refusal.explanation)}</p><div class="suggestion-list">${(data.safe_refusal.suggestions || []).slice(0, 3).map((item) => `<button>${escapeHTML(item)}</button>`).join("")}</div></div>`;
-  }
-  $("#judgeContent").innerHTML = `<div class="judge-story"><div class="judge-story-copy"><span class="section-kicker">Step ${state.judgeStep + 1}</span><h3>${escapeHTML(step.title)}</h3><p>${escapeHTML(step.copy)}</p><div class="evidence-box blue"><small>Why this matters to judges</small><strong>${escapeHTML(step.id === "purpose" ? "Clear problem and usefulness" : step.id === "interpret" ? "Meaningful AI assistance with human control" : step.id === "path" ? "Working prototype and verified calculations" : step.id === "challenge" ? "Trust through inspectable uncertainty" : step.id === "compare" ? "Data and AI quality" : step.id === "proof" ? "Visible evidence" : "Unsupported-question refusal")}</strong></div></div><div class="judge-story-visual">${visual}</div></div>`;
+  const step = currentJudgeStep();
+  if (!data || !step) return;
+  $("#judgeTitle").textContent = data.demo_meta?.title || "CareerProof AI guided presentation";
+  $("#judgeSubtitle").textContent = data.demo_meta?.subtitle || "A verified success case, evidence case, and safe failure case";
+  $("#judgeContent").innerHTML = `
+    <article class="judge-slide" data-step-id="${escapeHTML(step.id)}">
+      <section class="judge-slide-copy">
+        <span class="judge-step-eyebrow">${escapeHTML(step.eyebrow || `Step ${state.judgeStep + 1}`)}</span>
+        <h3>${escapeHTML(step.title)}</h3>
+        <p class="judge-step-summary">${escapeHTML(step.copy)}</p>
+        <div class="judge-presenter-script">
+          <header><span>Suggested narration</span><button type="button" data-copy-judge-script>Copy script</button></header>
+          <p>${escapeHTML(step.presenter_script || step.copy)}</p>
+        </div>
+        <div class="judge-focus-card"><small>What the judges should notice</small><strong>${escapeHTML(step.judge_focus || "Rubric alignment")}</strong><p>The visual on the right is generated from the same verified demo payload used by the live app.</p></div>
+        ${judgeProofPoints(step)}
+      </section>
+      <section class="judge-slide-visual">${judgeVisualForStep(step, data)}</section>
+    </article>`;
+  $("[data-copy-judge-script]")?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(step.presenter_script || step.copy || "");
+      showToast("Presenter script copied.");
+    } catch {
+      showToast("Copy is unavailable in this browser. The script remains visible.");
+    }
+  });
+  state.judgeStepStartedAt = Date.now();
   renderJudgeProgress();
+  scheduleJudgeAutoplay();
+}
+
+function goToJudgeStep(index) {
+  const steps = getJudgeSteps();
+  state.judgeStep = Math.max(0, Math.min(Number(index) || 0, steps.length - 1));
+  renderJudgeStep();
+}
+
+function setJudgeMode(mode) {
+  state.judgeMode = mode === "quick" ? "quick" : "full";
+  $("#judgeModeFull")?.classList.toggle("active", state.judgeMode === "full");
+  $("#judgeModeQuick")?.classList.toggle("active", state.judgeMode === "quick");
+  state.judgeStep = 0;
+  state.judgeStartedAt = Date.now();
+  state.judgeStepStartedAt = Date.now();
+  renderJudgeStep();
+  startJudgeClock();
+}
+
+async function startJudgeMode() {
+  const overlay = $("#judgeOverlay");
+  overlay.classList.add("open");
+  overlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("judge-mode-open");
+  $("#judgeContent").innerHTML = `<div class="loading-card"><span class="spinner"></span><h3>Preparing the verified presentation</h3><p>Loading the success case, comparison, evidence case, safe refusal, and action plan…</p></div>`;
+  try {
+    if (!state.judgeData) state.judgeData = normalizeJudgePayload(await api("/api/judge-demo"));
+    const meta = state.judgeData.demo_meta || {};
+    $("#judgeFullDuration").textContent = formatJudgeTime(meta.full_duration_seconds || (state.judgeData.steps || []).reduce((sum, step) => sum + Number(step.duration_seconds || 0), 0));
+    $("#judgeQuickDuration").textContent = formatJudgeTime(meta.quick_duration_seconds || (state.judgeData.steps || []).filter((step) => step.quick).reduce((sum, step) => sum + Number(step.duration_seconds || 0), 0));
+    state.judgeMode = "full";
+    state.judgeStep = 0;
+    state.judgeStartedAt = Date.now();
+    state.judgeStepStartedAt = Date.now();
+    setJudgeAutoplay(false);
+    $("#judgeModeFull")?.classList.add("active");
+    $("#judgeModeQuick")?.classList.remove("active");
+    startJudgeClock({ reset: true });
+    renderJudgeStep();
+    $("#judgeNext")?.focus({ preventScroll: true });
+  } catch (error) {
+    $("#judgeContent").innerHTML = `<div class="refusal-card"><span class="refusal-badge">Presentation stopped safely</span><h2>The verified demo payload could not load</h2><p>${escapeHTML(error.message)}</p><button class="outline-button" type="button" id="retryJudgeMode">Retry</button></div>`;
+    $("#retryJudgeMode")?.addEventListener("click", () => { state.judgeData = null; startJudgeMode(); });
+  }
+}
+
+function closeJudgeMode() {
+  stopJudgeClock();
+  setJudgeAutoplay(false);
+  $("#judgeOverlay").classList.remove("open");
+  $("#judgeOverlay").setAttribute("aria-hidden", "true");
+  document.body.classList.remove("judge-mode-open");
+}
+
+async function openJudgeLiveFeature() {
+  const step = currentJudgeStep();
+  const data = state.judgeData;
+  if (!step || !data) return;
+  closeJudgeMode();
+  applyDemoProfile();
+  const pathData = data.path_builder;
+  if (["interpret", "path", "challenge"].includes(step.id)) {
+    switchWorkspace("path");
+    renderInterpretation(data.interpretation);
+    if (["path", "challenge"].includes(step.id)) {
+      state.lastPath = pathData;
+      safeStorage.setItem("careerproof-last-path", JSON.stringify(pathData));
+      (pathData.results || []).forEach(cacheCareer);
+      renderPathResults(pathData);
+      if (step.id === "challenge") {
+        window.setTimeout(() => {
+          const top = pathData.results?.[0];
+          const panel = top ? $(`[data-challenge-panel="${top.soc_code}"]`) : null;
+          panel?.classList.remove("hidden");
+          panel?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 200);
+      }
+    }
+  } else if (step.id === "compare") {
+    state.compareValues = (data.comparison.results || []).slice(0, 3).map((item) => item.occupation_title).concat([""]).slice(0, 4);
+    state.compareResolved = (data.comparison.results || []).slice(0, 3).concat([null]).slice(0, 4);
+    state.lastCompare = data.comparison;
+    (data.comparison.results || []).forEach(cacheCareer);
+    renderCompareSlots();
+    switchWorkspace("compare");
+    renderCompare(data.comparison);
+  } else if (step.id === "proof") {
+    switchWorkspace("ask");
+    $("#questionInput").value = data.verified_answer.question || "Where does an electrical engineer's salary go furthest after cost of living?";
+    renderQuestionResult(data.verified_answer);
+  } else if (step.id === "refusal") {
+    switchWorkspace("ask");
+    $("#questionInput").value = data.safe_refusal.question || "Which bachelor's degree guarantees the highest salary after becoming a lawyer?";
+    renderQuestionResult(data.safe_refusal);
+  } else if (step.id === "plan") {
+    state.lastPath = pathData;
+    safeStorage.setItem("careerproof-last-path", JSON.stringify(pathData));
+    switchWorkspace("saved");
+    renderSavedWorkspace();
+  } else if (step.id === "architecture") {
+    switchWorkspace("trust");
+    loadTrustTab("diagnostic");
+  } else {
+    switchWorkspace("home");
+  }
+  showToast(`${step.title} opened in the live product.`);
 }
 
 function applyDemoProfile() {
@@ -1592,12 +1948,19 @@ function applyDemoProfile() {
 
 function resetJudgeDemo() {
   applyDemoProfile();
-  state.comparisonTray.clear(); renderComparisonTray();
-  state.judgeStep = 0; renderJudgeStep();
-  showToast("Judge demo reset to the verified starting profile.");
+  state.comparisonTray.clear();
+  renderComparisonTray();
+  state.judgeStep = 0;
+  state.judgeStartedAt = Date.now();
+  state.judgeStepStartedAt = Date.now();
+  setJudgeAutoplay(false);
+  startJudgeClock({ reset: true });
+  renderJudgeStep();
+  showToast("Presentation reset to the verified starting profile.");
 }
 
 function resetExperience() {
+  closeJudgeMode();
   applyDemoProfile();
   state.lastPath = null;
   state.lastInterpretation = null;
@@ -1621,7 +1984,7 @@ function resetExperience() {
   $("#bridgeResults").innerHTML = `<div class="empty-state card"><span>⌘</span><h3>Choose a starting and target career</h3><p>The bridge describes occupational overlap. It does not guarantee a transition.</p></div>`;
   $("#questionInput").value = "";
   $("#resultArea").innerHTML = `<div class="empty-state card"><span>◈</span><h3>Ask something the data can prove</h3><p>CareerProof will show the calculation, source rows, confidence, and limitations.</p></div>`;
-  ["#evidenceModal", "#methodologyModal", "#judgeOverlay"].forEach((selector) => {
+  ["#evidenceModal", "#methodologyModal"].forEach((selector) => {
     const element = $(selector); element?.classList.remove("open"); element?.setAttribute("aria-hidden", "true");
   });
   $("#savedDrawer").classList.remove("open"); $("#savedDrawer").setAttribute("aria-hidden", "true");
@@ -1672,10 +2035,33 @@ function bindFormsAndControls() {
   $("#saveDecisionNotes").addEventListener("click", () => { state.decisionNotes = $("#decisionNotes").value; safeStorage.setItem("careerproof-decision-notes", state.decisionNotes); showToast("Decision journal saved locally."); });
   $("#startJudgeMode").addEventListener("click", startJudgeMode);
   $("#resetDemo").addEventListener("click", resetExperience);
-  $("#closeJudge").addEventListener("click", () => { $("#judgeOverlay").classList.remove("open"); $("#judgeOverlay").setAttribute("aria-hidden", "true"); });
-  $("#judgePrev").addEventListener("click", () => { if (state.judgeStep > 0) { state.judgeStep--; renderJudgeStep(); } });
-  $("#judgeNext").addEventListener("click", () => { const count = state.judgeData?.steps?.length || 0; if (state.judgeStep < count - 1) { state.judgeStep++; renderJudgeStep(); } else { $("#judgeOverlay").classList.remove("open"); switchWorkspace("path"); applyDemoProfile(); showToast("Demo profile loaded into Path Builder."); } });
+  $("#closeJudge").addEventListener("click", closeJudgeMode);
+  $("#judgePrev").addEventListener("click", () => goToJudgeStep(state.judgeStep - 1));
+  $("#judgeNext").addEventListener("click", () => {
+    const steps = getJudgeSteps();
+    if (state.judgeStep < steps.length - 1) goToJudgeStep(state.judgeStep + 1);
+    else {
+      closeJudgeMode();
+      switchWorkspace("home");
+      showToast("Presentation complete. The live dashboard is ready for questions.");
+    }
+  });
+  $("#judgeOpenLive").addEventListener("click", openJudgeLiveFeature);
+  $("#judgeModeFull").addEventListener("click", () => setJudgeMode("full"));
+  $("#judgeModeQuick").addEventListener("click", () => setJudgeMode("quick"));
+  $("#judgeAutoplay").addEventListener("click", () => setJudgeAutoplay(!state.judgeAutoplay));
   $("#resetJudgeDemo").addEventListener("click", resetJudgeDemo);
+  $("#judgeTimeline").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-judge-step]");
+    if (button) goToJudgeStep(Number(button.dataset.judgeStep));
+  });
+  document.addEventListener("keydown", (event) => {
+    if (!$("#judgeOverlay")?.classList.contains("open")) return;
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+    if (event.key === "ArrowLeft") { event.preventDefault(); goToJudgeStep(state.judgeStep - 1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); goToJudgeStep(state.judgeStep + 1); }
+    if (event.key === " ") { event.preventDefault(); setJudgeAutoplay(!state.judgeAutoplay); }
+  });
   $("#universeBack").addEventListener("click", renderUniverseRoot);
   $("#universeReset").addEventListener("click", renderUniverseRoot);
   $$("[data-trust-tab]").forEach((button) => button.addEventListener("click", () => activateTrustTab(button.dataset.trustTab)));

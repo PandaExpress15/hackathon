@@ -1,0 +1,14 @@
+.git
+.venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+node_modules
+dist
+.env
+.DS_Store
+*.zip
+*.sha256.txt
+data/runtime/*
+!data/runtime/.gitkeep

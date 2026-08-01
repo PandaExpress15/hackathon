@@ -140,10 +140,32 @@ def test_search_and_degree_aliases_support_new_frontend(client: TestClient) -> N
     assert "related_occupation_count" in degrees[0]
 
 
-def test_judge_mode_contains_success_challenge_proof_and_refusal(client: TestClient) -> None:
+def test_judge_mode_contains_complete_timed_presentation(client: TestClient) -> None:
     payload = client.get("/api/judge-demo").json()
-    step_ids = {step["id"] for step in payload["steps"]}
-    assert {"purpose", "interpret", "path", "challenge", "compare", "proof", "refusal"} <= step_ids
+    steps = payload["steps"]
+    step_ids = [step["id"] for step in steps]
+
+    assert step_ids == [
+        "purpose", "interpret", "path", "challenge", "compare",
+        "proof", "refusal", "plan", "architecture", "close",
+    ]
+    assert all(step["presenter_script"] for step in steps)
+    assert all(step["proof_points"] for step in steps)
+    assert all(int(step["duration_seconds"]) > 0 for step in steps)
+    assert all(step["workspace"] for step in steps)
+
+    meta = payload["demo_meta"]
+    assert meta["full_duration_seconds"] == sum(int(step["duration_seconds"]) for step in steps)
+    assert meta["quick_duration_seconds"] == sum(int(step["duration_seconds"]) for step in steps if step["quick"])
+    assert meta["quick_duration_seconds"] < meta["full_duration_seconds"] <= 600
+    assert set(meta["quick_step_ids"]) == {step["id"] for step in steps if step["quick"]}
+
+    assert len(payload["rubric"]) == 6
+    assert sum(int(item["weight"]) for item in payload["rubric"]) == 100
+    assert len(payload["architecture"]) == 6
+    assert payload["action_plan"]["primary"]
+    assert payload["action_plan"]["roadmap"]
+
     assert payload["path"]["results"][0]["occupation_title"] == "Electrical Engineers"
     assert payload["verified_answer"]["status"] == "supported"
     assert payload["refusal"]["status"] == "refused"

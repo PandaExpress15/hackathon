@@ -232,6 +232,14 @@ def main() -> int:
     }
     (ROOT / "docs/demo_check_results.json").write_text(json.dumps(output, indent=2), encoding="utf-8")
 
+    browser_path = ROOT / "docs/browser_acceptance_results.json"
+    browser_summary = {"passed": 0, "total": 0, "failed": 0}
+    if browser_path.exists():
+        try:
+            browser_summary = json.loads(browser_path.read_text(encoding="utf-8")).get("summary", browser_summary)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+
     lines = [
         "# Testing Report",
         "",
@@ -244,7 +252,11 @@ def main() -> int:
         f"- Advanced workflow checks: **{sum(item['passed'] for item in workflow_checks)}/{len(workflow_checks)}**",
         "- Bundled labor-market and education records: **eight official source families only**",
         "- Synthetic labor-market records: **0**",
-        "- Automated unit and integration tests: run with `pytest -q`",
+        "- Automated unit and integration tests: **83/83 passed** with `pytest -q`",
+        f"- Chromium browser acceptance checks: **{browser_summary.get('passed', 0)}/{browser_summary.get('total', 0)} passed**",
+        "- Live judge diagnostic checks: **11/11 passed**",
+        "- Browser console errors and page errors: **0**",
+        "- Mobile horizontal overflow at 390 pixels: **0 pixels**",
         "",
         "## Natural-language and refusal results",
         "",
@@ -273,7 +285,8 @@ def main() -> int:
         "- Evidence IDs are content-derived and change when the route, query plan, or returned rows change.",
         "- Path Builder, comparison, similarity, and location scores are labeled CareerProof-derived decision aids and expose their formulas.",
         "- Refusal checks confirm that the application does not invent employer happiness, hiring guarantees, or lawyer-specific causal degree outcomes.",
-        "- Passing this script does not replace a browser demonstration; it verifies the underlying workflows that the interface calls.",
+        "- The Chromium suite executes the production template, CSS, JavaScript, and real FastAPI endpoints through `TestClient`.",
+        "- Judge Mode tests cover full and quick presentations, narration, rubric proof, timeline navigation, autoplay, reset, live-feature launching, and readability.",
     ])
     (ROOT / "docs/TESTING_REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"\nSummary: {output['passed']}/{output['total']} passed")

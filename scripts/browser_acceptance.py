@@ -31,6 +31,7 @@ HOME_SCREENSHOT = ROOT / "docs" / "assets" / "careerproof-98-home.png"
 PATH_SCREENSHOT = ROOT / "docs" / "assets" / "careerproof-98-path.png"
 COMPARE_SCREENSHOT = ROOT / "docs" / "assets" / "careerproof-98-compare.png"
 MOBILE_SCREENSHOT = ROOT / "docs" / "assets" / "careerproof-98-mobile.png"
+JUDGE_SCREENSHOT = ROOT / "docs" / "assets" / "careerproof-judge-mode.png"
 
 
 class Acceptance:
@@ -322,17 +323,98 @@ def run_suite(page: Page, acceptance: Acceptance) -> None:
 
     acceptance.check("Live judge diagnostic passes", diagnostic_flow)
 
-    def judge_flow() -> tuple[bool, str]:
+    def judge_full_flow() -> tuple[bool, str]:
         page.locator("#startJudgeMode").click(force=True)
-        page.wait_for_selector("#judgeOverlay.open", timeout=30_000)
+        page.wait_for_selector("#judgeOverlay.open #judgeTimeline .judge-timeline-step", timeout=30_000)
         title = text(page, "#judgeTitle")
-        page.locator("#judgeNext").click(force=True)
-        page.wait_for_timeout(200)
-        progress = page.locator("#judgeProgress span.active").count()
-        page.locator("#closeJudge").click(force=True)
-        return bool(title) and progress >= 1, f"title={title}; active progress={progress}"
+        stages = page.locator("#judgeTimeline .judge-timeline-step").count()
+        rubric = page.locator("#judgeRubric .judge-rubric-chip").count()
+        script_visible = page.locator("#judgeContent .judge-presenter-script").is_visible()
+        proof_points = page.locator("#judgeContent .judge-proof-points div").count()
+        durations = (text(page, "#judgeFullDuration"), text(page, "#judgeQuickDuration"))
+        page.screenshot(path=str(JUDGE_SCREENSHOT), full_page=True)
+        ok = bool(title) and stages == 10 and rubric == 6 and script_visible and proof_points >= 3 and "--" not in "".join(durations)
+        return ok, f"title={title}; stages={stages}; rubric={rubric}; proof_points={proof_points}; durations={durations}"
 
-    acceptance.check("Guided Judge Mode opens and advances", judge_flow)
+    acceptance.check("Judge Mode loads the complete 10-stage presentation", judge_full_flow)
+    acceptance.check(
+        "Judge Mode displays presenter narration and rubric proof",
+        lambda: (
+            page.locator("#judgeContent .judge-presenter-script").is_visible()
+            and page.locator("#judgeContent .judge-focus-card").is_visible()
+            and page.locator("#judgeContent .judge-proof-points").is_visible(),
+            text(page, "#judgeContent .judge-focus-card")[:180],
+        ),
+    )
+    acceptance.check("Judge Mode screenshot generated", lambda: (JUDGE_SCREENSHOT.exists() and JUDGE_SCREENSHOT.stat().st_size > 0, str(JUDGE_SCREENSHOT)))
+
+    def judge_quick_flow() -> tuple[bool, str]:
+        page.locator("#judgeModeQuick").click(force=True)
+        page.wait_for_timeout(250)
+        stages = page.locator("#judgeTimeline .judge-timeline-step").count()
+        label = text(page, "#judgeStepLabel")
+        active = page.locator("#judgeModeQuick.active").count() == 1
+        duration = text(page, "#judgeQuickDuration")
+        page.locator("#judgeModeFull").click(force=True)
+        page.wait_for_timeout(150)
+        return stages == 6 and label == "1 / 6" and active and duration not in {"", "--:--"}, f"stages={stages}; label={label}; duration={duration}"
+
+    acceptance.check("Judge Mode switches to a focused quick pitch", judge_quick_flow)
+
+    def judge_navigation_and_autoplay() -> tuple[bool, str]:
+        page.locator('#judgeTimeline [data-judge-step="3"]').click(force=True)
+        page.wait_for_selector('#judgeContent .judge-slide[data-step-id="challenge"]', timeout=10_000)
+        challenge_title = text(page, "#judgeContent h3")
+        challenge_step = page.locator('#judgeContent .judge-slide[data-step-id="challenge"]').count() == 1
+        page.locator("#judgeAutoplay").click(force=True)
+        autoplay_on = page.locator('#judgeAutoplay[aria-pressed="true"]').count() == 1
+        page.locator("#judgeAutoplay").click(force=True)
+        autoplay_off = page.locator('#judgeAutoplay[aria-pressed="false"]').count() == 1
+        page.locator("#resetJudgeDemo").click(force=True)
+        page.wait_for_timeout(120)
+        reset_label = text(page, "#judgeStepLabel")
+        return challenge_step and autoplay_on and autoplay_off and reset_label == "1 / 10", f"title={challenge_title}; reset={reset_label}; autoplay={autoplay_on}/{autoplay_off}"
+
+    acceptance.check("Judge timeline, autoplay control, and reset are reliable", judge_navigation_and_autoplay)
+
+    def judge_live_feature_flow() -> tuple[bool, str]:
+        page.locator('#judgeTimeline [data-judge-step="5"]').click(force=True)
+        page.wait_for_selector('#judgeContent .judge-slide[data-step-id="proof"]', timeout=10_000)
+        page.locator("#judgeOpenLive").click(force=True)
+        page.wait_for_selector("#workspace-ask.active #resultArea .proof-strip", timeout=20_000)
+        overlay_closed = page.locator("#judgeOverlay.open").count() == 0
+        result = text(page, "#resultArea")
+        proof_visible = page.locator("#resultArea .proof-strip").is_visible()
+        evidence_visible = page.locator("#resultArea .evidence-box, #resultArea .confidence-card").count() > 0
+        supported_copy = "regional price" in result.lower() or "purchasing-power" in result.lower() or "purchasing power" in result.lower()
+        return overlay_closed and proof_visible and evidence_visible and supported_copy, f"overlay_closed={overlay_closed}; proof={proof_visible}; evidence={evidence_visible}; {result[:180]}"
+
+    acceptance.check("Judge Mode opens the matching live evidence feature", judge_live_feature_flow)
+
+    def readability_flow() -> tuple[bool, str]:
+        values = page.evaluate(
+            """
+            () => {
+              const size = (selector) => {
+                const node = document.querySelector(selector);
+                return node ? parseFloat(getComputedStyle(node).fontSize) : null;
+              };
+              return {
+                body: size('body'),
+                hero: size('.hero-copy > p'),
+                pageCopy: size('#workspace-path .page-heading p'),
+                information: size('#workspace-home .home-universe > p'),
+                navigation: size('.nav-item > span:nth-child(2)'),
+                table: size('.location-table td'),
+              };
+            }
+            """
+        )
+        required = {"body": 16, "hero": 15.5, "pageCopy": 15.5, "information": 15.5, "navigation": 15, "table": 14}
+        passed = all(values.get(key) is not None and float(values[key]) >= minimum for key, minimum in required.items())
+        return passed, values
+
+    acceptance.check("Information text is readable at 100 percent browser zoom", readability_flow)
 
     def reset_flow() -> tuple[bool, str]:
         page.locator("#resetDemo").click(force=True)
@@ -405,7 +487,7 @@ def main() -> int:
         "console_errors": acceptance.console_errors,
         "page_errors": acceptance.page_errors,
         "method": "Production template, CSS, and JavaScript executed in Chromium; frontend fetch calls routed to the real FastAPI app through TestClient.",
-        "screenshots": [str(path.relative_to(ROOT)) for path in [HOME_SCREENSHOT, PATH_SCREENSHOT, COMPARE_SCREENSHOT, MOBILE_SCREENSHOT] if path.exists()],
+        "screenshots": [str(path.relative_to(ROOT)) for path in [HOME_SCREENSHOT, PATH_SCREENSHOT, COMPARE_SCREENSHOT, JUDGE_SCREENSHOT, MOBILE_SCREENSHOT] if path.exists()],
     }
     RESULT_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(f"\nBrowser acceptance: {acceptance.passed}/{len(acceptance.results)} passed")

@@ -40,7 +40,7 @@ The current build loads and validates:
 
 The application contains **no synthetic labor-market records**.
 
-## What the final 4.0 build adds
+## What the presentation-ready 4.1 build adds
 
 ### A two-stage Path Builder
 
@@ -163,7 +163,7 @@ The application explains that broad degree-field earnings and lawyer occupation 
 - **Evidence Center**: source catalog, model card, data quality, guardrails, and live diagnostics
 - **Ask CareerProof**: supported natural-language questions with visible query plans and safe refusal
 - **Occupation Explorer**: unified occupation profile across wage, outlook, O*NET, degree, and location evidence
-- **Judge Mode**: guided success case, tradeoff case, evidence case, and refusal case
+- **Judge Mode**: a timed 10-stage presentation with full and quick modes, visible rubric alignment, presenter narration, live-feature launch controls, autoplay, keyboard navigation, and one-click reset
 
 ## Data sources
 
@@ -240,10 +240,10 @@ PYTHONPATH=src python scripts/verify_submission.py
 
 Current verified results:
 
-- **81/81** unit and integration tests passed
+- **83/83** unit and integration tests passed
 - **19/19** question and advanced workflow checks passed
 - **11/11** judge diagnostic checks passed
-- **33/33** Chromium browser acceptance checks passed
+- **39/39** Chromium browser acceptance checks passed
 - Server smoke test passed
 - Submission checksum, secret, placeholder, and packaging verification passed
 - No browser console errors or page errors
@@ -253,7 +253,9 @@ The browser acceptance suite runs the production template, CSS, and JavaScript i
 
 ## Demonstration path
 
-The strongest concise demo uses this profile:
+Judge Mode now provides a **7:50 full presentation** and a **4:25 quick pitch**. Both modes use the same verified backend payload, display suggested narration, highlight the active scoring category, and can launch the matching live feature.
+
+The demonstration uses this profile:
 
 - Electronics, programming, and law interests
 - Python, Arduino, writing, and problem-solving skills
@@ -262,18 +264,34 @@ The strongest concise demo uses this profile:
 - $90,000 median salary target
 - AI resilience as a major priority
 
-Demo sequence:
+Full presentation sequence:
 
-1. Review the interpreted request.
-2. Confirm the profile and show Electrical Engineers ranking first.
-3. Open the resilience profile and score contributions.
-4. Challenge the recommendation.
-5. Change priorities in Compare Lab.
-6. Open an Evidence Passport.
-7. Ask the unsupported guarantee question.
-8. Save the plan.
+1. Establish the student problem and product purpose.
+2. Show the editable AI interpretation and human approval step.
+3. Calculate the Path Builder recommendation with hard gates and eight visible score components.
+4. Challenge the recommendation and expose weaknesses, assumptions, and counterfactuals.
+5. Compare tradeoffs and show how priorities change the result.
+6. Verify a cost-of-living answer with source rows, formulas, confidence, and limitations.
+7. Demonstrate safe refusal for an unsupported guarantee.
+8. Turn the analysis into a career portfolio and roadmap.
+9. Explain the six-stage architecture in plain language.
+10. Close against all six judging categories.
 
 See [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+
+## Free public deployment
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/PandaExpress15/hackathon)
+
+The repository is ready for a free Render web service:
+
+- `render.yaml` defines the service, build command, start command, and health check.
+- `Procfile` provides the production start command.
+- `Dockerfile` provides a portable container build.
+- `app.py` binds to `0.0.0.0` and honors the platform-provided `PORT`.
+- `/api/health` supports deployment health checks.
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the exact public deployment and verification steps. Free services may sleep when idle, so wake the site before judging.
 
 ## Important limitations
 
@@ -296,9 +314,12 @@ See [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 - [docs/PRESENTATION.md](docs/PRESENTATION.md)
 - [docs/PRESENTATION.html](docs/PRESENTATION.html)
 - [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md)
+- [docs/PRESENTATION_READY_BUILD_REPORT.md](docs/PRESENTATION_READY_BUILD_REPORT.md)
 - [docs/FINAL_98_BUILD_REPORT.md](docs/FINAL_98_BUILD_REPORT.md)
 - [docs/TESTING_REPORT.md](docs/TESTING_REPORT.md)
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 - [docs/browser_acceptance_results.json](docs/browser_acceptance_results.json)
+- [docs/presentation_ready_build_manifest.json](docs/presentation_ready_build_manifest.json)
 - [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md)
 
 ## License and disclosure

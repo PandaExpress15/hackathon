@@ -26,7 +26,7 @@ def test_frontend_has_suit_bow_tie_identity_and_judge_mode() -> None:
     html = (ROOT / "templates/app.html").read_text(encoding="utf-8")
     assert "CareerProof suit and bow-tie emblem" in html
     assert "bow-tie" in html
-    assert "Start 90-second demo" in html
+    assert "Start guided judge presentation" in html
     assert "Plan your future" in html
     assert "Not for AI" in html
     assert "designed to endure AI change" in html
@@ -57,3 +57,29 @@ def test_frontend_discloses_official_data_and_no_synthetic_records() -> None:
     assert "Official sources only" in html
     for source in ["BLS", "Census", "O*NET", "BEA", "NCES"]:
         assert source in html
+
+
+def test_frontend_has_presentation_controls_and_readable_information_text() -> None:
+    html = (ROOT / "templates/app.html").read_text(encoding="utf-8")
+    css = (ROOT / "static/app.css").read_text(encoding="utf-8")
+    js = (ROOT / "static/app.js").read_text(encoding="utf-8")
+    for marker in [
+        'id="judgeModeFull"', 'id="judgeModeQuick"', 'id="judgeAutoplay"',
+        'id="judgeTimeline"', 'id="judgeOpenLive"', 'id="resetJudgeDemo"',
+    ]:
+        assert marker in html
+    for marker in ["presenter_script", "renderJudgeTimeline", "openJudgeLiveFeature", "setJudgeAutoplay"]:
+        assert marker in js
+    assert "CareerProof 4.1 presentation and readability upgrade" in css
+    assert "font-size:15.5px" in css
+    assert "judge-presenter-script" in css
+
+
+def test_deployment_files_are_present() -> None:
+    for relative in ["Dockerfile", ".dockerignore", "Procfile", "render.yaml", "docs/DEPLOYMENT.md"]:
+        assert (ROOT / relative).is_file()
+    app = (ROOT / "app.py").read_text(encoding="utf-8")
+    render = (ROOT / "render.yaml").read_text(encoding="utf-8")
+    assert 'os.getenv("PORT"' in app
+    assert 'host = os.getenv("CAREERPROOF_HOST", "0.0.0.0")' in app
+    assert "/api/health" in render
